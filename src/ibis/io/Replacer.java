@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io;
+package ibis.io;
 
 /**
  * Object replacer, used in object serialization..

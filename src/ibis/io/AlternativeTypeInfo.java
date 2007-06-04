@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io;
+package ibis.io;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
@@ -600,14 +600,14 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             hasReplace = writeReplaceMethod != null;
 
             // Determines whether a class is Ibis-serializable.
-            // We cannot use "instanceof ibis.util.io.Serializable", because that
+            // We cannot use "instanceof ibis.io.Serializable", because that
             // would also return true if a parent class implements
-            // ibis.util.io.Serializable, which is not good enough.
+            // ibis.io.Serializable, which is not good enough.
 
             Class[] intfs = clazz.getInterfaces();
 
             for (int i = 0; i < intfs.length; i++) {
-                if (intfs[i].equals(ibis.util.io.Serializable.class)) {
+                if (intfs[i].equals(ibis.io.Serializable.class)) {
                     isIbisSerializable = true;
                 }
             }
@@ -623,7 +623,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 gen = null;
             } else {
                 Class gen_class = null;
-                String name = clazz.getName() + "_ibis_util_io_Generator";
+                String name = clazz.getName() + "_ibis_io_Generator";
                 try {
                     gen_class = Class.forName(name);
                 } catch (ClassNotFoundException e) {

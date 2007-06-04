@@ -1,8 +1,8 @@
 /* $Id$ */
 
-package ibis.util.io.nio;
+package ibis.io.nio;
 
-import ibis.util.io.SimpleLittleConversion;
+import ibis.io.SimpleLittleConversion;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

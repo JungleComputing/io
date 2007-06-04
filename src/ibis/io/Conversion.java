@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io;
+package ibis.io;
 
 // import java.lang.reflect.Constructor;
 import java.io.ByteArrayInputStream;
@@ -100,9 +100,9 @@ public abstract class Conversion {
             System.err.println("nio/wrap conversion selected");
             try {
                 if (bigEndian) {
-                    return new ibis.util.io.nio.NioWrapBigConversion();
+                    return new ibis.io.nio.NioWrapBigConversion();
                 }
-                return new ibis.util.io.nio.NioWrapLittleConversion();
+                return new ibis.io.nio.NioWrapLittleConversion();
             } catch (Exception e) {
                 // nio conversion loading failed
             }
@@ -110,9 +110,9 @@ public abstract class Conversion {
             System.err.println("nio/chunk conversion selected");
             try {
                 if (bigEndian) {
-                    return new ibis.util.io.nio.NioChunkBigConversion();
+                    return new ibis.io.nio.NioChunkBigConversion();
                 }
-                return new ibis.util.io.nio.NioChunkLittleConversion();
+                return new ibis.io.nio.NioChunkLittleConversion();
             } catch (Exception e) {
                 // nio conversion loading failed
             }
@@ -124,9 +124,9 @@ public abstract class Conversion {
 
             try {
                 if (bigEndian) {
-                    return new ibis.util.io.nio.HybridChunkBigConversion();
+                    return new ibis.io.nio.HybridChunkBigConversion();
                 }
-                return new ibis.util.io.nio.HybridChunkLittleConversion();
+                return new ibis.io.nio.HybridChunkLittleConversion();
             } catch (Exception e) {
                 // hybrid conversion loading failed
             }

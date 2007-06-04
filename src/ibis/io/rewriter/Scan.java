@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io.rewriter;
+package ibis.io.rewriter;
 
 import ibis.util.RunProcess;
 
@@ -57,7 +57,7 @@ public class Scan {
         RunProcess p = null;
 
         try {
-            String command = "java ibis.util.io.rewriter.IOGenerator ";
+            String command = "java ibis.io.rewriter.IOGenerator ";
 
             for (int i = 0; i < BATCH_SIZE; i++) {
                 if (class_names[i] != null) {

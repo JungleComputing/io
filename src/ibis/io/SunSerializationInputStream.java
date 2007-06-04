@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io;
+package ibis.io;
 
 import java.io.IOException;
 import java.io.InputStream;

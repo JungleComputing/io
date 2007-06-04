@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io;
+package ibis.io;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -1973,7 +1973,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     dbPrint("generated_DefaultReadObject, class = " + type
                             + ", level = " + current_level);
                 }
-                ((ibis.util.io.Serializable) ref).generated_DefaultReadObject(ibisStream,
+                ((ibis.io.Serializable) ref).generated_DefaultReadObject(ibisStream,
                         current_level);
             } else if (t.isSerializable) {
 

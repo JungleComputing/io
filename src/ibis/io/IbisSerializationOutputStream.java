@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io;
+package ibis.io;
 
 import java.io.IOException;
 import java.io.NotActiveException;
@@ -1063,7 +1063,7 @@ public class IbisSerializationOutputStream
          inspection, this should probably be handled somehow in
          IOGenerator.
          Note that the needed info is available in AlternativeTypeInfo,
-         but we don't want to use that when we have ibis.util.io.Serializable.
+         but we don't want to use that when we have ibis.io.Serializable.
          */
 
         if (replacer != null) {
@@ -1216,7 +1216,7 @@ public class IbisSerializationOutputStream
              inspection, this should probably be handled somehow in
              IOGenerator.
              Note that the needed info is available in AlternativeTypeInfo,
-             but we don't want to use that when we have ibis.util.io.Serializable.
+             but we don't want to use that when we have ibis.io.Serializable.
              */
             Class clazz = ref.getClass();
             AlternativeTypeInfo t

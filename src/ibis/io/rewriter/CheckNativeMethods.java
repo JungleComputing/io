@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io.rewriter;
+package ibis.io.rewriter;
 
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ClassParser;

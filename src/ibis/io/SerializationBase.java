@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.util.io;
+package ibis.io;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -115,16 +115,16 @@ public class SerializationBase extends IOProperties {
      */
     private static String implName(String name) {
         if (name == null || name.equals("ibis") || name.equals("object")) {
-            return "ibis.util.io.IbisSerialization";
+            return "ibis.io.IbisSerialization";
         }
         if (name.equals("sun")) {
-            return "ibis.util.io.SunSerialization";
+            return "ibis.io.SunSerialization";
         }
         if (name.equals("data")) {
-            return "ibis.util.io.DataSerialization";
+            return "ibis.io.DataSerialization";
         }
         if (name.equals("byte")) {
-            return "ibis.util.io.ByteSerialization";
+            return "ibis.io.ByteSerialization";
         }
         return name;
     }

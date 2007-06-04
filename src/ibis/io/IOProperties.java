@@ -1,11 +1,11 @@
 /* $Id$ */
 
-package ibis.util.io;
+package ibis.io;
 
 import ibis.util.TypedProperties;
 
 /**
- * Collects all system properties used by the ibis.util.io package.
+ * Collects all system properties used by the ibis.io package.
  */
 class IOProperties implements Constants {
     static final TypedProperties properties;
@@ -15,7 +15,7 @@ class IOProperties implements Constants {
         properties.loadDefaultConfigProperties();
     }
 
-    static final String PROPERTY_PREFIX = "ibis.util.io.";
+    static final String PROPERTY_PREFIX = "ibis.io.";
 
     static final String s_stats_nonrewritten = PROPERTY_PREFIX
             + "stats.nonrewritten";

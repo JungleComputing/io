@@ -1,4 +1,4 @@
-package ibis.util.io;
+package ibis.io;
 
 public interface Constants {
     public static final int TYPE_BIT = (1 << 31);
