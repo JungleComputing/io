@@ -132,10 +132,11 @@ public final class OutputStreamSplitter extends OutputStream {
         out.add(s);
     }
 
-    public void remove(OutputStream s) {
+    public void remove(OutputStream s) throws IOException {
         int i = out.indexOf(s);
+        
         if (i == -1) {
-            throw new Error("Removing unknown stream from splitter.");
+            throw new IOException("Removing unknown stream from splitter.");
         }
 
         out.remove(i);
