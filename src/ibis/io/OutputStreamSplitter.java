@@ -102,7 +102,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     private synchronized void finish() {
         numSenders--;
-        notify();
+        notifyAll();
     }
 
     private synchronized void addException(IOException e, int index) {
@@ -147,6 +147,17 @@ public final class OutputStreamSplitter extends OutputStream {
             System.err.println("SPLIT: writing: " + b);
         }
 
+        synchronized(this) {
+            while (numSenders != 0) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // Ignored
+                }
+            }
+            numSenders++;
+        }
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).write(b);
@@ -175,6 +186,11 @@ public final class OutputStreamSplitter extends OutputStream {
                 throw e;
             }
         }
+
+        synchronized(this) {
+            numSenders--;
+            notifyAll();
+        }
     }
 
     public void write(byte[] b) throws IOException {
@@ -185,6 +201,17 @@ public final class OutputStreamSplitter extends OutputStream {
         if (DEBUG) {
             System.err.println("SPLIT: writing: " + b + ", off = " + off
                     + ", len = " + len);
+        }
+
+        synchronized(this) {
+            while (numSenders != 0) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // Ignored
+                }
+            }
+            numSenders++;
         }
 
         for (int i = 1; i < out.size(); i++) {
@@ -202,6 +229,17 @@ public final class OutputStreamSplitter extends OutputStream {
             System.err.println("SPLIT: flush");
         }
 
+        synchronized(this) {
+            while (numSenders != 0) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // Ignored
+                }
+            }
+            numSenders++;
+        }
+
         for (int i = 1; i < out.size(); i++) {
             Flusher f = new Flusher(i);
             runThread(f, "Splitter flusher");
@@ -215,6 +253,17 @@ public final class OutputStreamSplitter extends OutputStream {
     public void close() throws IOException {
         if (DEBUG) {
             System.err.println("SPLIT: close");
+        }
+
+        synchronized(this) {
+            while (numSenders != 0) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // Ignored
+                }
+            }
+            numSenders++;
         }
 
         for (int i = 1; i < out.size(); i++) {
@@ -249,6 +298,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     private void done() throws IOException {
         synchronized(this) {
+            numSenders--;
             while (numSenders != 0) {
                 try {
                     wait();
