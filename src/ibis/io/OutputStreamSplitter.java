@@ -305,22 +305,23 @@ public final class OutputStreamSplitter extends OutputStream {
                     // Ignored
                 }
             }
-        }
+            notifyAll();
 
-        if (savedException != null) {
-            if (removeOnException) {
-                for (int i = 0; i < out.size(); i++) {
-                    if (out.get(i) == null) {
-                        out.remove(i);
-                        i--;
+            if (savedException != null) {
+                if (removeOnException) {
+                    for (int i = 0; i < out.size(); i++) {
+                        if (out.get(i) == null) {
+                            out.remove(i);
+                            i--;
+                        }
                     }
                 }
-            }
 
-            if (! saveException) {
-                SplitterException e = savedException;
-                savedException = null;
-                throw e;
+                if (! saveException) {
+                    SplitterException e = savedException;
+                    savedException = null;
+                    throw e;
+                }
             }
         }
     }
