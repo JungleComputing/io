@@ -4,7 +4,6 @@ package ibis.io;
 
 import java.io.IOException;
 import java.io.NotActiveException;
-import java.io.NotSerializableException;
 import java.io.ObjectOutput;
 import java.io.ObjectStreamClass;
 
@@ -285,8 +284,8 @@ public class IbisSerializationOutputStream
 
     public void reset(boolean cleartypes) {
         if (cleartypes || next_handle > CONTROL_HANDLES) {
-            if (DEBUG) {
-                dbPrint("reset: next handle = " + next_handle + ".");
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("reset: next handle = " + next_handle + ".");
             }
             references.clear();
             /* We cannot send out the reset immediately, because the
@@ -348,23 +347,23 @@ public class IbisSerializationOutputStream
     void writeHandle(int v) throws IOException {
         if (clearPending) {
             writeInt(CLEAR_HANDLE);
-            if (DEBUG) {
-                dbPrint("wrote a CLEAR");
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("wrote a CLEAR");
             }
             resetPending = false;
             clearPending = false;
         } else if (resetPending) {
             writeInt(RESET_HANDLE);
-            if (DEBUG) {
-                dbPrint("wrote a RESET");
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("wrote a RESET");
             }
             resetPending = false;
         }
 
         // treating handles as normal int's --N
         writeInt(v);
-        if (DEBUG) {
-            dbPrint("wrote handle " + v);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote handle " + v);
         }
     }
 
@@ -503,8 +502,8 @@ public class IbisSerializationOutputStream
         writeType(clazz);
         next_handle++;
 
-        if (DEBUG) {
-            dbPrint("writeTypeHandle: references[" + handle + "] = "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeTypeHandle: references[" + handle + "] = "
                     + (ref == null ? "null" : ref));
         }
 
@@ -544,8 +543,8 @@ public class IbisSerializationOutputStream
 
         addStatSendArrayHandle(ref, len);
 
-        if (DEBUG) {
-            dbPrint("writeArrayHeader " + clazz.getName() + " length = " + len);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArrayHeader " + clazz.getName() + " length = " + len);
         }
         return true;
     }
@@ -671,8 +670,8 @@ public class IbisSerializationOutputStream
         if (type_number != 0) {
             writeHandle(type_number); // TYPE_BIT is set, receiver sees it
 
-            if (DEBUG) {
-                dbPrint("wrote type number 0x"
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("wrote type number 0x"
                         + Integer.toHexString(type_number));
             }
             return;
@@ -682,8 +681,8 @@ public class IbisSerializationOutputStream
         lastTypeno = type_number;
         lastClass = clazz;
         writeHandle(type_number); // TYPE_BIT is set, receiver sees it
-        if (DEBUG) {
-            dbPrint("wrote NEW type number 0x"
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote NEW type number 0x"
                     + Integer.toHexString(type_number) + " type "
                     + clazz.getName());
         }
@@ -709,16 +708,16 @@ public class IbisSerializationOutputStream
             // System.err.write("+");
             Class clazz = ref.getClass();
             next_handle++;
-            if (DEBUG) {
-                dbPrint("writeKnownObjectHeader -> writing NEW object, class = "
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeKnownObjectHeader -> writing NEW object, class = "
                         + clazz.getName());
             }
             writeType(clazz);
             return 1;
         }
 
-        if (DEBUG) {
-            dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
         }
         writeHandle(handle);
 
@@ -748,8 +747,8 @@ public class IbisSerializationOutputStream
             return 1;
         }
 
-        if (DEBUG) {
-            dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
         }
         writeHandle(handle);
 
@@ -771,8 +770,8 @@ public class IbisSerializationOutputStream
         int temp = 0;
         int i;
 
-        if (DEBUG) {
-            dbPrint("alternativeDefaultWriteObject, class = "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("alternativeDefaultWriteObject, class = "
                     + t.clazz.getName());
         }
         for (i = 0; i < t.double_count; i++) {
@@ -825,19 +824,18 @@ public class IbisSerializationOutputStream
         if (t.hasWriteObject) {
             current_level = t.level;
             try {
-                if (DEBUG) {
-                    dbPrint("invoking writeObject() of class "
+                if (DEBUG && logger.isDebugEnabled()) {
+                    logger.debug("invoking writeObject() of class "
                             + t.clazz.getName());
                 }
                 t.invokeWriteObject(ref, getJavaObjectOutputStream());
-                if (DEBUG) {
-                    dbPrint("done with writeObject() of class "
+                if (DEBUG && logger.isDebugEnabled()) {
+                    logger.debug("done with writeObject() of class "
                             + t.clazz.getName());
                 }
             } catch (java.lang.reflect.InvocationTargetException e) {
-                if (DEBUG) {
-                    dbPrint("Caught exception: " + e);
-                    e.printStackTrace();
+                if (DEBUG && logger.isDebugEnabled()) {
+                    logger.debug("Caught exception", e);
                 }
                 Throwable cause = e.getTargetException();
                 if (cause instanceof Error) {
@@ -849,10 +847,10 @@ public class IbisSerializationOutputStream
                 if (cause instanceof IOException) {
                     throw (IOException) cause;
                 }
-                if (DEBUG) {
-                    dbPrint("now rethrow as IllegalAccessException ...");
+                if (DEBUG && logger.isDebugEnabled()) {
+                    logger.debug("now rethrow as IllegalAccessException ...");
                 }
-                throw new IllegalAccessException("writeObject method: " + e);
+                throw new IbisIllegalAccessException("writeObject method", e);
             }
             return;
         }
@@ -930,13 +928,11 @@ public class IbisSerializationOutputStream
             alternativeWriteObject(t, ref);
             pop_current_object();
         } catch (IllegalAccessException e) {
-            if (DEBUG) {
-                dbPrint("Caught exception: " + e);
-                e.printStackTrace();
-                dbPrint("now rethrow as java.io.NotSerializableException ...");
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("Caught exception, rethrow as NotSerializableException", e);
             }
-            throw new NotSerializableException("Serializable failed for : "
-                    + classname);
+            throw new IbisNotSerializableException("Serializable failed for : "
+                    + classname, e);
         }
     }
 
@@ -952,8 +948,8 @@ public class IbisSerializationOutputStream
             startTimer();
         }
         if (ref == null) {
-            if (DEBUG) {
-                dbPrint("writeString: --> null");
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeString: --> null");
             }
             writeHandle(NUL_HANDLE);
             if (TIME_IBIS_SERIALIZATION) {
@@ -966,13 +962,13 @@ public class IbisSerializationOutputStream
         if (handle == next_handle) {
             next_handle++;
             writeType(java.lang.String.class);
-            if (DEBUG) {
-                dbPrint("writeString: " + ref);
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeString: " + ref);
             }
             writeUTF(ref);
         } else {
-            if (DEBUG) {
-                dbPrint("writeString: duplicate handle " + handle
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeString: duplicate handle " + handle
                         + " string = " + ref);
             }
             writeHandle(handle);
@@ -1036,8 +1032,8 @@ public class IbisSerializationOutputStream
     void assignHandle(Object ref, int hashCode) {
         int handle = next_handle++;
         references.put(ref, handle, hashCode);
-        if (DEBUG) {
-            dbPrint("assignHandle: references[" + handle + "] = " + ref);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("assignHandle: references[" + handle + "] = " + ref);
         }
     }
 
@@ -1077,17 +1073,17 @@ public class IbisSerializationOutputStream
             Class clazz = ref.getClass();
             AlternativeTypeInfo t
                         = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
-            if (DEBUG) {
-                dbPrint("start writeObject of class " + clazz.getName()
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("start writeObject of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
             t.writer.writeObject(this, ref, t, hashCode, false);
-            if (DEBUG) {
-                dbPrint("finished writeObject of class " + clazz.getName());
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("finished writeObject of class " + clazz.getName());
             }
         } else {
-            if (DEBUG) {
-                dbPrint("writeObject: duplicate handle " + handle + " class = "
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeObject: duplicate handle " + handle + " class = "
                         + ref.getClass());
             }
             writeHandle(handle);
@@ -1126,12 +1122,10 @@ public class IbisSerializationOutputStream
         try {
             alternativeDefaultWriteObject(t, ref);
         } catch (IllegalAccessException e) {
-            if (DEBUG) {
-                dbPrint("Caught exception: " + e);
-                e.printStackTrace();
-                dbPrint("now rethrow as NotSerializableException ...");
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("Caught exception, rethrow as NotSerializableException", e);
             }
-            throw new NotSerializableException("illegal access" + e);
+            throw new IbisNotSerializableException("illegal access", e);
         }
     }
 
@@ -1175,8 +1169,8 @@ public class IbisSerializationOutputStream
                  indicates which instance of generated_DefaultWriteObject 
                  should do some work.
                 */
-                if (DEBUG) {
-                    dbPrint("generated_DefaultWriteObject, class = "
+                if (DEBUG && logger.isDebugEnabled()) {
+                    logger.debug("generated_DefaultWriteObject, class = "
                             + clazz.getName() + ", level = " + current_level);
                 }
                 ((Serializable) ref).generated_DefaultWriteObject(ibisStream,
@@ -1193,15 +1187,13 @@ public class IbisSerializationOutputStream
                 try {
                     alternativeDefaultWriteObject(t, ref);
                 } catch (IllegalAccessException e) {
-                    if (DEBUG) {
-                        dbPrint("Caught exception: " + e);
-                        e.printStackTrace();
-                        dbPrint("now rethrow as NotSerializableException ...");
+                    if (DEBUG && logger.isDebugEnabled()) {
+                        logger.debug("Caught exception, rethrow as NotSerializableException", e);
                     }
-                    throw new NotSerializableException("illegal access" + e);
+                    throw new IbisNotSerializableException("illegal access", e);
                 }
             } else {
-                throw new NotSerializableException("Not Serializable : "
+                throw new IbisNotSerializableException("Not Serializable : "
                         + clazz.getName());
             }
         }
@@ -1222,15 +1214,15 @@ public class IbisSerializationOutputStream
             AlternativeTypeInfo t
                     = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
-            if (DEBUG) {
-                dbPrint("start writeUnshared of class " + clazz.getName()
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("start writeUnshared of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
 
             t.writer.writeObject(ibisStream, ref, t, 0, true);
 
-            if (DEBUG) {
-                dbPrint("finished writeUnshared of class " + clazz.getName()
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("finished writeUnshared of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
         }

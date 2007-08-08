@@ -77,9 +77,6 @@ public final class BufferedArrayInputStream extends DataInputStream
             index = 0;
         }
         while (buffered_bytes < len) {
-            // System.err.println("buffer -> filled from " + index + " with "
-            // 	       + buffered_bytes + " size " + BUF_SIZE + " read " + len);
-
             int n = in.read(buffer, index + buffered_bytes, BUF_SIZE
                     - (index + buffered_bytes));
             if (n < 0) {
@@ -96,8 +93,8 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(boolean[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG) {
-            System.err.println("readArray(boolean[" + off + " ... "
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("readArray(boolean[" + off + " ... "
                     + (off + len) + "])");
         }
 
@@ -141,28 +138,19 @@ public final class BufferedArrayInputStream extends DataInputStream
     }
 
     public void readArray(byte[] a, int off, int len) throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("readArray(byte[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("readArray(byte[" + off + " ... " + (off + len)
                     + "])");
         }
 
         if (buffered_bytes >= len) {
-            //System.err.println("IN BUF");
-
             // data is already in the buffer.
-            //	    System.err.println("Data is in buffer -> copying " + index +
-            //	    			" ... " + (index+len) + " to " + off);
-
             System.arraycopy(buffer, index, a, off, len);
             index += len;
             buffered_bytes -= len;
 
-            //System.err.println("DONE");
-
         } else {
             if (buffered_bytes != 0) {
-                // System.err.println("PARTLY IN BUF " + buffered_bytes
-                //         + " " + len);
                 // first, copy the data we do have to 'a' .
                 System.arraycopy(buffer, index, a, off, buffered_bytes);
             }
@@ -179,18 +167,17 @@ public final class BufferedArrayInputStream extends DataInputStream
 
             buffered_bytes = 0;
         }
-
-        // System.err.print("result -> byte[");
-        // for (int i=0;i<len;i++) { 
-        //     System.err.print(a[off+i] + ",");
-        // }
-        // System.err.println("]");
     }
 
     // static int R = 0;
     // static int W = 0;
 
     public void readArray(short[] a, int off, int len) throws IOException {
+
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("readArray(char[" + off + " ... " + (off + len)
+                    + "])");
+        }
 
         int useable, converted;
         int to_convert = len * SIZEOF_SHORT;
@@ -229,21 +216,12 @@ public final class BufferedArrayInputStream extends DataInputStream
         conversion.byte2short(buffer, index, a, off, len);
         buffered_bytes -= to_convert;
         index += to_convert;
-
-        if (IOProperties.DEBUG) {
-            System.err.print("readArray(short[");
-            for (int i = 0; i < len; i++) {
-                System.err.print(a[off + i] + ",");
-            }
-            System.err.println("]");
-            System.err.flush();
-        }
     }
 
     public void readArray(char[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG) {
-            System.err.println("readArray(char[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("readArray(char[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -288,16 +266,13 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(int[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG) {
-            System.err.println("readArray(int[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("readArray(int[" + off + " ... " + (off + len)
                     + "])");
         }
 
         int useable, converted;
         int to_convert = len * SIZEOF_INT;
-
-        // System.err.println("To convert " + to_convert);
-        // System.err.println("Buffered " + buffered_bytes);
 
         while (buffered_bytes < to_convert) {
             // not enough data in the buffer
@@ -309,8 +284,6 @@ public final class BufferedArrayInputStream extends DataInputStream
                 // first, copy the data we do have to 'a' .
                 useable = buffered_bytes / SIZEOF_INT;
 
-                // System.err.println("converting " + useable + " ints from "
-                //         + off);
                 conversion.byte2int(buffer, index, a, off, useable);
 
                 len -= useable;
@@ -320,10 +293,6 @@ public final class BufferedArrayInputStream extends DataInputStream
                 index += converted;
                 buffered_bytes -= converted;
                 to_convert -= converted;
-
-                // System.err.println("Leftover " + len + " ints to convert, "
-                //         + buffered_bytes + " bytes buffered"
-                //         + to_convert + " bytes to convert");
 
                 // second, copy the leftovers to the start of the buffer.
                 for (int i = 0; i < buffered_bytes; i++) {
@@ -337,22 +306,16 @@ public final class BufferedArrayInputStream extends DataInputStream
         }
 
         // enough data in the buffer
-        // System.err.println("converting " + len + " ints from " + index
-        //         + " to " + off);
 
         conversion.byte2int(buffer, index, a, off, len);
         buffered_bytes -= to_convert;
         index += to_convert;
-
-        // System.err.println("Done converting int [], buffer contains "
-        //         + buffered_bytes + " bytes (starting at " + index + ")");
-
     }
 
     public void readArray(long[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG) {
-            System.err.println("readArray(long[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("readArray(long[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -397,8 +360,8 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(float[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG) {
-            System.err.println("readArray(float[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("readArray(float[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -443,8 +406,8 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(double[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG) {
-            System.err.println("readArray(double[" + off + " ... "
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("readArray(double[" + off + " ... "
                     + (off + len) + "])");
         }
 
@@ -558,23 +521,19 @@ public final class BufferedArrayInputStream extends DataInputStream
     }
 
     public int read(byte[] a, int off, int len) throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("read(byte[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("read(byte[" + off + " ... " + (off + len)
                     + "])");
         }
 
         if (buffered_bytes >= len) {
             // data is already in the buffer.
-            //	    System.err.println("Data is in buffer -> copying " + index +
-            //	    			" ... " + (index+len) + " to " + off);
 
             System.arraycopy(buffer, index, a, off, len);
             index += len;
             buffered_bytes -= len;
         } else {
             if (buffered_bytes != 0) {
-                // System.err.println("PARTLY IN BUF " + buffered_bytes
-                //         + " " + len);
                 // first, copy the data we do have to 'a' .
                 System.arraycopy(buffer, index, a, off, buffered_bytes);
             }
@@ -594,14 +553,7 @@ public final class BufferedArrayInputStream extends DataInputStream
             buffered_bytes = 0;
         }
 
-        // System.err.print("result -> byte[");
-        // for (int i=0;i<len;i++) { 
-        //     System.err.print(a[off+i] + ",");
-        // }
-        // System.err.println("]");
-
         return len;
-
     }
 
     public void close() throws IOException {

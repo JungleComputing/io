@@ -71,7 +71,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
      {
      Runtime.getRuntime().addShutdownHook(new Thread() {
      public void run() {
-     System.err.println(DataSerializationOutputStream.this +
+     logger.info(DataSerializationOutputStream.this +
      ": unfinished calls " + unfinished);
      statistics();
      }
@@ -191,7 +191,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
-            // System.err.println("Special boolean array write len " + len);
             /* Maybe lift the check from the writeBoolean? */
             for (int i = offset; i < offset + len; i++) {
                 writeBoolean(ref[i]);
@@ -201,8 +200,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             if (array_index == ARRAY_BUFFER_SIZE) {
                 flush();
             }
-            if (DEBUG) {
-                dbPrint("writeArrayBoolean: " + ref + " offset: " + offset
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeArrayBoolean: " + ref + " offset: " + offset
                         + " len: " + len + " type: " + TYPE_BOOLEAN);
             }
             array[array_index].type = TYPE_BOOLEAN;
@@ -230,7 +229,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
-            // System.err.println("Special byte array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeByte(ref[i]);
             }
@@ -239,8 +237,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             if (array_index == ARRAY_BUFFER_SIZE) {
                 flush();
             }
-            if (DEBUG) {
-                dbPrint("writeArrayByte: " + ref + " offset: " + offset
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeArrayByte: " + ref + " offset: " + offset
                         + " len: " + len + " type: " + TYPE_BYTE);
             }
             array[array_index].type = TYPE_BYTE;
@@ -268,7 +266,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
-            // System.err.println("Special char array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeChar(ref[i]);
             }
@@ -277,8 +274,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             if (array_index == ARRAY_BUFFER_SIZE) {
                 flush();
             }
-            if (DEBUG) {
-                dbPrint("writeArrayChar: " + new String(ref) + " offset: "
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeArrayChar: " + new String(ref) + " offset: "
                         + offset + " len: " + len + " type: " + TYPE_CHAR);
             }
             array[array_index].type = TYPE_CHAR;
@@ -306,7 +303,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
-            // System.err.println("Special short array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeShort(ref[i]);
             }
@@ -315,8 +311,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             if (array_index == ARRAY_BUFFER_SIZE) {
                 flush();
             }
-            if (DEBUG) {
-                dbPrint("writeArrayShort: " + ref + " offset: " + offset
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeArrayShort: " + ref + " offset: " + offset
                         + " len: " + len + " type: " + TYPE_SHORT);
             }
             array[array_index].type = TYPE_SHORT;
@@ -344,7 +340,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / SIZEOF_INT) {
-            // System.err.println("Special int array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeInt(ref[i]);
             }
@@ -353,8 +348,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             if (array_index == ARRAY_BUFFER_SIZE) {
                 flush();
             }
-            if (DEBUG) {
-                dbPrint("writeArrayInt: " + ref + " offset: " + offset
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeArrayInt: " + ref + " offset: " + offset
                         + " len: " + len + " type: " + TYPE_INT);
             }
             array[array_index].type = TYPE_INT;
@@ -382,7 +377,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / SIZEOF_LONG) {
-            // System.err.println("Special long array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeLong(ref[i]);
             }
@@ -391,8 +385,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             if (array_index == ARRAY_BUFFER_SIZE) {
                 flush();
             }
-            if (DEBUG) {
-                dbPrint("writeArrayLong: " + ref + " offset: " + offset
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeArrayLong: " + ref + " offset: " + offset
                         + " len: " + len + " type: " + TYPE_LONG);
             }
             array[array_index].type = TYPE_LONG;
@@ -420,7 +414,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
-            // System.err.println("Special float array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeFloat(ref[i]);
             }
@@ -429,8 +422,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             if (array_index == ARRAY_BUFFER_SIZE) {
                 flush();
             }
-            if (DEBUG) {
-                dbPrint("writeArrayFloat: " + ref + " offset: " + offset
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeArrayFloat: " + ref + " offset: " + offset
                         + " len: " + len + " type: " + TYPE_FLOAT);
             }
             array[array_index].type = TYPE_FLOAT;
@@ -458,7 +451,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
         } else if (len < SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
-            // System.err.println("Special double array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeDouble(ref[i]);
             }
@@ -467,8 +459,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             if (array_index == ARRAY_BUFFER_SIZE) {
                 flush();
             }
-            if (DEBUG) {
-                dbPrint("writeArrayDouble: " + ref + " offset: " + offset
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("writeArrayDouble: " + ref + " offset: " + offset
                         + " len: " + len + " type: " + TYPE_DOUBLE);
             }
             array[array_index].type = TYPE_DOUBLE;
@@ -491,8 +483,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
      */
     public void flush() throws IOException {
 
-        if (DEBUG) {
-            dbPrint("doing a flush()");
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("doing a flush()");
         }
 
         if (TIME_DATA_SERIALIZATION) {
@@ -592,8 +584,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
         }
-        if (DEBUG) {
-            dbPrint("wrote boolean " + value);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote boolean " + value);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -617,8 +609,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             byte_buffer[byte_index++] = value;
         }
-        if (DEBUG) {
-            dbPrint("wrote byte " + value);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote byte " + value);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -642,8 +634,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             char_buffer[char_index++] = value;
         }
-        if (DEBUG) {
-            dbPrint("wrote char " + value);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote char " + value);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -667,8 +659,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             short_buffer[short_index++] = value;
         }
-        if (DEBUG) {
-            dbPrint("wrote short " + value);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote short " + value);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -692,8 +684,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             int_buffer[int_index++] = value;
         }
-        if (DEBUG) {
-            dbPrint("wrote int[HEX] " + value + "[0x"
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote int[HEX] " + value + "[0x"
                     + Integer.toHexString(value) + "]");
         }
         if (TIME_DATA_SERIALIZATION) {
@@ -718,8 +710,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             long_buffer[long_index++] = value;
         }
-        if (DEBUG) {
-            dbPrint("wrote long " + value);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote long " + value);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -743,8 +735,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             float_buffer[float_index++] = value;
         }
-        if (DEBUG) {
-            dbPrint("wrote float " + value);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote float " + value);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -768,8 +760,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             double_buffer[double_index++] = value;
         }
-        if (DEBUG) {
-            dbPrint("wrote double " + value);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("wrote double " + value);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -813,8 +805,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             return;
         }
 
-        if (DEBUG) {
-            dbPrint("write UTF " + str);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("write UTF " + str);
         }
         int len = str.length();
 
@@ -874,15 +866,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         indices_short[TYPE_FLOAT] = (short) float_index;
         indices_short[TYPE_DOUBLE] = (short) double_index;
 
-        if (DEBUG) {
-            dbPrint("writing arrays " + array_index);
-            dbPrint("writing bytes " + byte_index);
-            dbPrint("writing chars " + char_index);
-            dbPrint("writing shorts " + short_index);
-            dbPrint("writing ints " + int_index);
-            dbPrint("writing longs " + long_index);
-            dbPrint("writing floats " + float_index);
-            dbPrint("writing doubles " + double_index);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writing arrays " + array_index);
+            logger.debug("writing bytes " + byte_index);
+            logger.debug("writing chars " + char_index);
+            logger.debug("writing shorts " + short_index);
+            logger.debug("writing ints " + int_index);
+            logger.debug("writing longs " + long_index);
+            logger.debug("writing floats " + float_index);
+            logger.debug("writing doubles " + double_index);
         }
 
         out.writeArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES

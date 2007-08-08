@@ -60,19 +60,13 @@ public final class BufferedArrayOutputStream extends DataOutputStream
      */
     private void flush(int incr) throws IOException {
 
-        if (IOProperties.DEBUG) {
-            System.err.println("flush(" + incr + ") : " + " "
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("flush(" + incr + ") : " + " "
                     + (index + incr >= BUF_SIZE) + " " + (index) + ")");
         }
 
         if (index + incr > BUF_SIZE) {
             bytes += index;
-
-            // System.err.print("fflushing [");
-            // for (int i=0;i<index;i++) { 
-            //     System.err.print(buffer[i] + ",");
-            // }
-            // System.err.println("] " + bytes);
 
             out.write(buffer, 0, index);
             index = 0;
@@ -140,8 +134,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(boolean[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("writeArray(boolean[" + off + " ... "
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("writeArray(boolean[" + off + " ... "
                     + (off + len) + "])");
         }
 
@@ -161,8 +155,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(byte[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("writeArray(byte[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("writeArray(byte[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -188,8 +182,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(char[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("writeArray(char[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("writeArray(char[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -209,8 +203,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(short[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("writeArray(short[" + off + " ... "
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("writeArray(short[" + off + " ... "
                     + (off + len) + "])");
         }
 
@@ -219,23 +213,19 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
             int size = Math.min((BUF_SIZE - index) / SIZEOF_SHORT, len);
 
-            // System.err.println("Room to write " + size + " shorts");
-
             conversion.short2byte(ref, off, size, buffer, index);
 
             off += size;
             len -= size;
             index += size * SIZEOF_SHORT;
 
-            // System.err.println("Len = " + len + " index = " + index);
-
         } while (len != 0);
     }
 
     public void writeArray(int[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("writeArray(int[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("writeArray(int[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -244,23 +234,19 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
             int size = Math.min((BUF_SIZE - index) / SIZEOF_INT, len);
 
-            // System.err.println("Room to write " + size + " ints");
-
             conversion.int2byte(ref, off, size, buffer, index);
 
             off += size;
             len -= size;
             index += size * SIZEOF_INT;
 
-            // System.err.println("Len = " + len + " index = " + index);
-
         } while (len != 0);
     }
 
     public void writeArray(long[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("writeArray(long[" + off + " ... " + (off + len)
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("writeArray(long[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -280,8 +266,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(float[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("writeArray(float[" + off + " ... "
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("writeArray(float[" + off + " ... "
                     + (off + len) + "])");
         }
         do {
@@ -300,8 +286,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(double[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG) {
-            System.err.println("writeArray(double[" + off + " ... "
+        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
+            IOProperties.logger.debug("writeArray(double[" + off + " ... "
                     + (off + len) + "])");
         }
 

@@ -4,12 +4,32 @@ package ibis.io;
 
 import ibis.util.TypedProperties;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.WriterAppender;
+
 /**
  * Collects all system properties used by the ibis.io package.
  */
 class IOProperties implements Constants {
     static final TypedProperties properties;
     
+    static {
+        Logger ibisLogger = Logger.getLogger("ibis");
+        Logger rootLogger = Logger.getRootLogger();
+        if (! rootLogger.getAllAppenders().hasMoreElements()
+             && !ibisLogger.getAllAppenders().hasMoreElements()) {
+            // No appenders defined, print to standard err by default
+            PatternLayout layout = new PatternLayout("%d{HH:mm:ss} %-5p %m%n");
+            WriterAppender appender = new WriterAppender(layout, System.err);
+            ibisLogger.addAppender(appender);
+            ibisLogger.setLevel(Level.WARN);
+        }
+    }
+
+    static final Logger logger = Logger.getLogger("ibis.io");
+     
     static {
         properties = new TypedProperties();
         properties.loadDefaultConfigProperties();
@@ -50,7 +70,7 @@ class IOProperties implements Constants {
 
     static final String s_hash_resize = PROPERTY_PREFIX + "hash.resize";
     
-    public static final boolean DEBUG = properties.getBooleanProperty(s_dbg, false);
+    static final boolean DEBUG = properties.getBooleanProperty(s_dbg, false);
 
     public static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, false);
 

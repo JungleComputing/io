@@ -5,14 +5,14 @@ package ibis.io;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/** Contract: write to multiple outputstreams.
- when an exception occurs, store it and continue.
- when the data is written to all streams, throw one large exception
- that contains all previous exceptions.
- This way, even when one of the streams dies, the rest will receive the data.
+/**
+ * Contract: write to multiple outputstreams.
+ * when an exception occurs, store it and continue.
+ * when the data is written to all streams, throw one large exception
+ * that contains all previous exceptions.
+ * This way, even when one of the streams dies, the rest will receive the data.
  **/
 public final class DataOutputStreamSplitter extends DataOutputStream {
-    private static final boolean DEBUG = false;
 
     private boolean removeOnException = false;
 
@@ -30,9 +30,6 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
     }
 
     public void add(DataOutputStream s) {
-        if (DEBUG) {
-            System.err.println("SPLIT: ADDING: " + s);
-        }
         out.add(s);
     }
 
@@ -47,9 +44,6 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
 
     private SplitterException handleException(SplitterException e,
             IOException newException, int pos) {
-        if (DEBUG) {
-            System.err.println("splitter got exception");
-        }
         if (e == null) {
             e = new SplitterException();
         }
@@ -81,10 +75,6 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
 
     public void write(byte[] b) throws IOException {
         SplitterException e = null;
-        if (DEBUG) {
-            System.err.println("SPLIT: writing: " + b + ", b.lenth = "
-                    + b.length);
-        }
         bytesWritten += b.length;
         for (int i = 0; i < out.size(); i++) {
             try {
@@ -98,19 +88,12 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
 
         if (e != null) {
-            if (DEBUG) {
-                System.err.println("splitter throwing exception");
-            }
             throw e;
         }
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
         SplitterException e = null;
-        if (DEBUG) {
-            System.err.println("SPLIT: writing: " + b + ", off = " + off
-                    + ", len = " + len);
-        }
         bytesWritten += len;
         for (int i = 0; i < out.size(); i++) {
             try {
@@ -124,18 +107,12 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
 
         if (e != null) {
-            if (DEBUG) {
-                System.err.println("splitter throwing exception");
-            }
             throw e;
         }
     }
 
     public void flush() throws IOException {
         SplitterException e = null;
-        if (DEBUG) {
-            System.err.println("SPLIT: flush");
-        }
 
         for (int i = 0; i < out.size(); i++) {
             try {
@@ -149,18 +126,12 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
 
         if (e != null) {
-            if (DEBUG) {
-                System.err.println("splitter throwing exception");
-            }
             throw e;
         }
     }
 
     public void close() throws IOException {
         SplitterException e = null;
-        if (DEBUG) {
-            System.err.println("SPLIT: close");
-        }
 
         for (int i = 0; i < out.size(); i++) {
             try {
@@ -174,9 +145,6 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
 
         if (e != null) {
-            if (DEBUG) {
-                System.err.println("splitter throwing exception");
-            }
             throw e;
         }
     }

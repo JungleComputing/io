@@ -172,8 +172,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             a = (byte_buffer[byte_index++] != (byte) 0);
         }
-        if (DEBUG) {
-            dbPrint("read boolean: " + a);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read boolean: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -195,8 +195,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             a = byte_buffer[byte_index++];
         }
-        if (DEBUG) {
-            dbPrint("read byte: " + a);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read byte: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -218,8 +218,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             a = char_buffer[char_index++];
         }
-        if (DEBUG) {
-            dbPrint("read char: " + a);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read char: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -241,8 +241,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             a = short_buffer[short_index++];
         }
-        if (DEBUG) {
-            dbPrint("read short: " + a);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read short: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -264,8 +264,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             a = int_buffer[int_index++];
         }
-        if (DEBUG) {
-            dbPrint("read int[HEX]: " + a + "[0x" + Integer.toHexString(a)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read int[HEX]: " + a + "[0x" + Integer.toHexString(a)
                     + "]");
         }
         if (TIME_DATA_SERIALIZATION) {
@@ -288,8 +288,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             a = long_buffer[long_index++];
         }
-        if (DEBUG) {
-            dbPrint("read long: " + a);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read long: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -311,8 +311,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             a = float_buffer[float_index++];
         }
-        if (DEBUG) {
-            dbPrint("read float: " + a);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read float: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -334,8 +334,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             a = double_buffer[double_index++];
         }
-        if (DEBUG) {
-            dbPrint("read double: " + a);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read double: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -356,13 +356,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 receive();
             }
             array_index++;
-            if (DEBUG) {
-                dbPrint("readArrayBoolean: " + ref + " offset: " + off
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("readArrayBoolean: " + ref + " offset: " + off
                         + " len: " + len + " type: " + TYPE_BOOLEAN);
             }
             in.readArray(ref, off, len);
         } else {
-            // System.err.println("Special boolean array read len " + len);
             for (int i = off; i < off + len; i++) {
                 ref[i] = readBoolean();
             }
@@ -382,13 +381,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 receive();
             }
             array_index++;
-            if (DEBUG) {
-                dbPrint("readArrayByte: " + ref + " offset: " + off
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("readArrayByte: " + ref + " offset: " + off
                         + " len: " + len + " type: " + TYPE_BYTE);
             }
             in.readArray(ref, off, len);
         } else {
-            // System.err.println("Special byte array read len " + len);
             for (int i = off; i < off + len; i++) {
                 ref[i] = readByte();
             }
@@ -408,13 +406,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 receive();
             }
             array_index++;
-            if (DEBUG) {
-                dbPrint("readArrayChar: " + new String(ref) + " offset: " + off
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("readArrayChar: " + new String(ref) + " offset: " + off
                         + " len: " + len + " type: " + TYPE_CHAR);
             }
             in.readArray(ref, off, len);
         } else {
-            // System.err.println("Special char array read len " + len);
             for (int i = off; i < off + len; i++) {
                 ref[i] = readChar();
             }
@@ -434,13 +431,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 receive();
             }
             array_index++;
-            if (DEBUG) {
-                dbPrint("readArrayShort: " + ref + " offset: " + off
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("readArrayShort: " + ref + " offset: " + off
                         + " len: " + len + " type: " + TYPE_SHORT);
             }
             in.readArray(ref, off, len);
         } else {
-            // System.err.println("Special short array read len " + len);
             for (int i = off; i < off + len; i++) {
                 ref[i] = readShort();
             }
@@ -460,13 +456,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 receive();
             }
             array_index++;
-            if (DEBUG) {
-                dbPrint("readArrayInt: " + ref + " offset: " + off
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("readArrayInt: " + ref + " offset: " + off
                         + " len: " + len + " type: " + TYPE_INT);
             }
             in.readArray(ref, off, len);
         } else {
-            // System.err.println("Special int array read len " + len);
             for (int i = off; i < off + len; i++) {
                 ref[i] = readInt();
             }
@@ -486,13 +481,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 receive();
             }
             array_index++;
-            if (DEBUG) {
-                dbPrint("readArrayLong: " + ref + " offset: " + off
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("readArrayLong: " + ref + " offset: " + off
                         + " len: " + len + " type: " + TYPE_LONG);
             }
             in.readArray(ref, off, len);
         } else {
-            // System.err.println("Special long array read len " + len);
             for (int i = off; i < off + len; i++) {
                 ref[i] = readLong();
             }
@@ -512,13 +506,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 receive();
             }
             array_index++;
-            if (DEBUG) {
-                dbPrint("readArrayFloat: " + ref + " offset: " + off
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("readArrayFloat: " + ref + " offset: " + off
                         + " len: " + len + " type: " + TYPE_FLOAT);
             }
             in.readArray(ref, off, len);
         } else {
-            // System.err.println("Special float array read len " + len);
             for (int i = off; i < off + len; i++) {
                 ref[i] = readFloat();
             }
@@ -538,13 +531,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 receive();
             }
             array_index++;
-            if (DEBUG) {
-                dbPrint("readArrayDouble: " + ref + " offset: " + off
+            if (DEBUG && logger.isDebugEnabled()) {
+                logger.debug("readArrayDouble: " + ref + " offset: " + off
                         + " len: " + len + " type: " + TYPE_DOUBLE);
             }
             in.readArray(ref, off, len);
         } else {
-            // System.err.println("Special double array read len " + len);
             for (int i = off; i < off + len; i++) {
                 ref[i] = readDouble();
             }
@@ -651,8 +643,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
      * @exception IOException gets thrown when any of the reads throws it.
      */
     private void receive() throws IOException {
-        if (DEBUG) {
-            dbPrint("doing a receive()");
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("doing a receive()");
         }
         if (ASSERTS) {
             int sum = (max_byte_index - byte_index)
@@ -664,15 +656,15 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                     + (max_double_index - double_index)
                     + (max_array_index - array_index);
             if (sum != 0) {
-                dbPrint("EEEEK : receiving while there is data in buffer !!!");
-                dbPrint("byte_index " + (max_byte_index - byte_index));
-                dbPrint("char_index " + (max_char_index - char_index));
-                dbPrint("short_index " + (max_short_index - short_index));
-                dbPrint("int_index " + (max_int_index - int_index));
-                dbPrint("long_index " + (max_long_index - long_index));
-                dbPrint("float_index " + (max_float_index - float_index));
-                dbPrint("double_index " + (max_double_index - double_index));
-                dbPrint("array_index " + (max_array_index - array_index));
+                logger.debug("EEEEK : receiving while there is data in buffer !!!");
+                logger.debug("byte_index " + (max_byte_index - byte_index));
+                logger.debug("char_index " + (max_char_index - char_index));
+                logger.debug("short_index " + (max_short_index - short_index));
+                logger.debug("int_index " + (max_int_index - int_index));
+                logger.debug("long_index " + (max_long_index - long_index));
+                logger.debug("float_index " + (max_float_index - float_index));
+                logger.debug("double_index " + (max_double_index - double_index));
+                logger.debug("array_index " + (max_array_index - array_index));
 
                 throw new SerializationError("Internal error!");
             }
@@ -702,15 +694,15 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         max_float_index = indices_short[TYPE_FLOAT];
         max_double_index = indices_short[TYPE_DOUBLE];
 
-        if (DEBUG) {
-            dbPrint("reading arrays " + max_array_index);
-            dbPrint("reading bytes " + max_byte_index);
-            dbPrint("reading char " + max_char_index);
-            dbPrint("reading short " + max_short_index);
-            dbPrint("reading int " + max_int_index);
-            dbPrint("reading long " + max_long_index);
-            dbPrint("reading float " + max_float_index);
-            dbPrint("reading double " + max_double_index);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("reading arrays " + max_array_index);
+            logger.debug("reading bytes " + max_byte_index);
+            logger.debug("reading char " + max_char_index);
+            logger.debug("reading short " + max_short_index);
+            logger.debug("reading int " + max_int_index);
+            logger.debug("reading long " + max_long_index);
+            logger.debug("reading float " + max_float_index);
+            logger.debug("reading double " + max_double_index);
         }
 
         if (max_byte_index > 0) {
@@ -777,8 +769,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
         int bn = readInt();
 
-        if (DEBUG) {
-            dbPrint("readUTF: len = " + bn);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readUTF: len = " + bn);
         }
 
         if (bn == -1) {
@@ -818,13 +810,13 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
 
         String s = new String(c, 0, len);
-        // dbPrint("readUTF: " + s);
+        // logger.debug("readUTF: " + s);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
 
-        if (DEBUG) {
-            dbPrint("read string " + s);
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read string " + s);
         }
         return s;
     }

@@ -3,7 +3,6 @@
 package ibis.io;
 
 import java.io.IOException;
-import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
@@ -105,13 +104,11 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             try {
                 out.alternativeWriteObject(t, ref);
             } catch (IllegalAccessException e) {
-                if (DEBUG) {
-                    out.dbPrint("Caught exception: " + e);
-                    e.printStackTrace();
-                    out.dbPrint("now rethrow as NotSerializableException ...");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Caught exception, rethrow as NotSerializableException", e);
                 }
-                throw new NotSerializableException("Serializable failed for : "
-                        + t.clazz.getName());
+                throw new IbisNotSerializableException("Serializable failed for : "
+                        + t.clazz.getName(), e);
             }
             out.pop_current_object();
             IbisSerializationOutputStream.addStatSendObject(ref);
@@ -122,7 +119,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
         void writeObject(IbisSerializationOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
-            throw new NotSerializableException("Not serializable: " +
+            throw new IbisNotSerializableException("Not serializable: " +
                     t.clazz.getName());
         }
     }
@@ -191,12 +188,10 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 // Also calls parameter-less constructor
                 obj = t.clazz.newInstance();
             } catch(Throwable e) {
-                if (DEBUG) {
-                    in.dbPrint("Caught exception: " + e);
-                    e.printStackTrace();
-                    in.dbPrint("now rethrow as ClassNotFound ...");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Caught exception, now rethrow as ClassNotFound", e);
                 }
-                throw new ClassNotFoundException("Could not instantiate" + e);
+                throw new ClassNotFoundException("Could not instantiate", e);
             }
             in.addObjectToCycleCheck(obj);
             in.push_current_object(obj, 0);
@@ -216,12 +211,10 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             try {
                 in.alternativeReadObject(t, obj);
             } catch(IllegalAccessException e) {
-                if (DEBUG) {
-                    in.dbPrint("Caught exception: " + e);
-                    e.printStackTrace();
-                    in.dbPrint("now rethrow as NotSerializableException ...");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Caught exception, now rethrow as NotSerializableException", e);
                 }
-                throw new NotSerializableException(typeHandle + " " + e);
+                throw new IbisNotSerializableException("handle " + typeHandle, e);
             }
             in.pop_current_object();
             return obj;
@@ -634,8 +627,8 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                         gen_class = Thread.currentThread().getContextClassLoader()
                                 .loadClass(name);
                     } catch (Exception e1) {
-                        if (DEBUG) {
-                            System.err.println("Class " + name + " not found!");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Class " + name + " not found!");
                         }
                         gen = null;
                     }
@@ -644,8 +637,8 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                     try {
                         gen = (Generator) gen_class.newInstance();
                     } catch (Exception e) {
-                        if (DEBUG) {
-                            System.out.println("Could not instantiate " + name);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Could not instantiate " + name);
                         }
                         gen = null;
                     }

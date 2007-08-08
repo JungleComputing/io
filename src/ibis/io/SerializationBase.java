@@ -91,22 +91,6 @@ public class SerializationBase extends IOProperties {
     }
 
     /**
-     * Debugging print.
-     * @param s	the string to be printed.
-     */
-    protected void dbPrint(String s) {
-        debuggerPrint(this + ": " + s);
-    }
-
-    /**
-     * Debugging print.
-     * @param s the string to be printed.
-     */
-    protected synchronized static void debuggerPrint(String s) {
-        System.err.println(s);
-    }
-
-    /**
      * Returns the implementation name for the specified nickname.
      * For now, this is hardcoded, but it could be driven by for instance
      * a configuration or properties file.
