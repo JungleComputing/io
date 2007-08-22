@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotActiveException;
 import java.io.ObjectStreamClass;
-import java.io.Serializable;
 import java.io.StreamCorruptedException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -18,7 +17,7 @@ import java.lang.reflect.Method;
  */
 public class IbisSerializationInputStream extends DataSerializationInputStream {
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_IBIS_SERIALIZATION = true;
+    private static final boolean TIME_IBIS_SERIALIZATION = false;
 
     /**
      * Record how many objects of any class are sent the expensive way:
@@ -226,9 +225,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     public void close() throws IOException {
-        super.close();
-        types = null;
         objects.clear();
+        objects = null;
+        types = null;
+        current_object = null;
+        object_stack = null;
+        level_stack = null;
+        super.close();
     }
 
     /*

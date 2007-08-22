@@ -824,4 +824,16 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     public String readString() throws IOException {
         return readUTF();
     }
+    
+    public void close() throws IOException {
+        indices_short = null;
+        byte_buffer = null;
+        char_buffer = null;
+        short_buffer = null;
+        int_buffer = null;
+        long_buffer = null;
+        float_buffer = null;
+        double_buffer = null;
+        super.close();
+    }
 }

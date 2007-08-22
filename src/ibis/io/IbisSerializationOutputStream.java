@@ -14,7 +14,7 @@ import java.io.ObjectStreamClass;
 public class IbisSerializationOutputStream
         extends DataSerializationOutputStream {
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_IBIS_SERIALIZATION = true;
+    private static final boolean TIME_IBIS_SERIALIZATION = false;
 
     /** Record how many objects of any class are sent. */
     private static final boolean STATS_OBJECTS
@@ -1027,6 +1027,19 @@ public class IbisSerializationOutputStream
      */
     public void writeObject(Object ref) throws IOException {
         doWriteObject(ref);
+    }
+
+    public void close() throws IOException {
+        replacer = null;
+        references = null;
+        types = null;
+        current_object = null;
+        current_putfield = null;
+        object_stack = null;
+        level_stack = null;
+        putfield_stack = null;
+        lastClass = null;
+        super.close();
     }
 
     void assignHandle(Object ref, int hashCode) {
