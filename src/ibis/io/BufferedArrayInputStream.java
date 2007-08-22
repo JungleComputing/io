@@ -53,7 +53,7 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public final int read() throws IOException {
         try {
-            byte b = readByte();
+            int b = readByte();
             return (b & 0377);
         } catch(EOFException e) {
             return -1;

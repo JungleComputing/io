@@ -81,7 +81,7 @@ class IOProperties implements Constants {
             s_buffer_size, 4 * 1024);
 
     public static final int ARRAY_BUFFER_SIZE
-            = properties.getIntProperty(s_array_buffer, 1024);
+            = properties.getIntProperty(s_array_buffer, 32);
 
     static final String[] sysprops = { s_stats_nonrewritten,
             s_stats_written, s_classloader, s_timer, s_conversion, 

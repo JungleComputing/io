@@ -96,21 +96,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     private static final class ArrayDescriptor {
         int type;
 
-        boolean[] booleanArray;
-
-        byte[] byteArray;
-
-        char[] charArray;
-
-        short[] shortArray;
-
-        int[] intArray;
-
-        long[] longArray;
-
-        float[] floatArray;
-
-        double[] doubleArray;
+        Object array;
 
         int offset;
 
@@ -207,7 +193,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].type = TYPE_BOOLEAN;
             array[array_index].offset = offset;
             array[array_index].len = len;
-            array[array_index].booleanArray = ref;
+            array[array_index].array = ref;
             array_index++;
 
             addStatSendArray(ref, TYPE_BOOLEAN, len);
@@ -244,7 +230,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].type = TYPE_BYTE;
             array[array_index].offset = offset;
             array[array_index].len = len;
-            array[array_index].byteArray = ref;
+            array[array_index].array = ref;
             array_index++;
 
             addStatSendArray(ref, TYPE_BYTE, len);
@@ -281,7 +267,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].type = TYPE_CHAR;
             array[array_index].offset = offset;
             array[array_index].len = len;
-            array[array_index].charArray = ref;
+            array[array_index].array = ref;
             array_index++;
 
             addStatSendArray(ref, TYPE_CHAR, len);
@@ -318,7 +304,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].type = TYPE_SHORT;
             array[array_index].offset = offset;
             array[array_index].len = len;
-            array[array_index].shortArray = ref;
+            array[array_index].array = ref;
             array_index++;
 
             addStatSendArray(ref, TYPE_SHORT, len);
@@ -355,7 +341,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].type = TYPE_INT;
             array[array_index].offset = offset;
             array[array_index].len = len;
-            array[array_index].intArray = ref;
+            array[array_index].array = ref;
             array_index++;
 
             addStatSendArray(ref, TYPE_INT, len);
@@ -392,7 +378,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].type = TYPE_LONG;
             array[array_index].offset = offset;
             array[array_index].len = len;
-            array[array_index].longArray = ref;
+            array[array_index].array = ref;
             array_index++;
 
             addStatSendArray(ref, TYPE_LONG, len);
@@ -429,7 +415,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].type = TYPE_FLOAT;
             array[array_index].offset = offset;
             array[array_index].len = len;
-            array[array_index].floatArray = ref;
+            array[array_index].array = ref;
             array_index++;
 
             addStatSendArray(ref, TYPE_FLOAT, len);
@@ -466,7 +452,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[array_index].type = TYPE_DOUBLE;
             array[array_index].offset = offset;
             array[array_index].len = len;
-            array[array_index].doubleArray = ref;
+            array[array_index].array = ref;
             array_index++;
 
             addStatSendArray(ref, TYPE_DOUBLE, len);
@@ -501,28 +487,28 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
                 ArrayDescriptor a = array[i];
                 switch (a.type) {
                 case TYPE_BOOLEAN:
-                    out.writeArray(a.booleanArray, a.offset, a.len);
+                    out.writeArray((boolean[]) a.array, a.offset, a.len);
                     break;
                 case TYPE_BYTE:
-                    out.writeArray(a.byteArray, a.offset, a.len);
+                    out.writeArray((byte[]) a.array, a.offset, a.len);
                     break;
                 case TYPE_CHAR:
-                    out.writeArray(a.charArray, a.offset, a.len);
+                    out.writeArray((char[]) a.array, a.offset, a.len);
                     break;
                 case TYPE_SHORT:
-                    out.writeArray(a.shortArray, a.offset, a.len);
+                    out.writeArray((short[]) a.array, a.offset, a.len);
                     break;
                 case TYPE_INT:
-                    out.writeArray(a.intArray, a.offset, a.len);
+                    out.writeArray((int[]) a.array, a.offset, a.len);
                     break;
                 case TYPE_LONG:
-                    out.writeArray(a.longArray, a.offset, a.len);
+                    out.writeArray((long[]) a.array, a.offset, a.len);
                     break;
                 case TYPE_FLOAT:
-                    out.writeArray(a.floatArray, a.offset, a.len);
+                    out.writeArray((float[]) a.array, a.offset, a.len);
                     break;
                 case TYPE_DOUBLE:
-                    out.writeArray(a.doubleArray, a.offset, a.len);
+                    out.writeArray((double[]) a.array, a.offset, a.len);
                     break;
                 }
             }
@@ -990,5 +976,19 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
+    }
+
+    public void close() throws IOException {
+
+        byte_buffer = null;
+        char_buffer = null;
+        short_buffer = null;
+        int_buffer = null;
+        long_buffer = null;
+        float_buffer = null;
+        double_buffer = null;
+        array = null;
+
+        super.close();
     }
 }
