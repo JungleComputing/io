@@ -511,6 +511,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
                     out.writeArray((double[]) a.array, a.offset, a.len);
                     break;
                 }
+                a.array = null;
             }
 
             array_index = 0;
