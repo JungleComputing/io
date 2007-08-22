@@ -981,6 +981,8 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     public void close() throws IOException {
 
+        super.close();
+
         byte_buffer = null;
         char_buffer = null;
         short_buffer = null;
@@ -989,7 +991,5 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         float_buffer = null;
         double_buffer = null;
         array = null;
-
-        super.close();
     }
 }
