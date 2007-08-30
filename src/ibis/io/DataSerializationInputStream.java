@@ -781,7 +781,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
 
         byte[] b = new byte[bn];
-        readArray(b, 0, bn);
+        readByteArray(b, 0, bn);
 
         int len = 0;
         char[] c = new char[bn];

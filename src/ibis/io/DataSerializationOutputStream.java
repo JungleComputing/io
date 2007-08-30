@@ -800,8 +800,21 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         // writeInt(len);
         // writeArray(str.toCharArray(), 0, len);
 
-        byte[] b = new byte[3 * len];
         int bn = 0;
+
+        for (int i = 0; i < len; i++) {
+            char c = str.charAt(i);
+            if (c > 0x0000 && c <= 0x007f) {
+                bn++;
+            } else if (c <= 0x07ff) {
+                bn += 2;
+            } else {
+                bn += 3;
+            }
+        }
+
+        byte[] b = new byte[bn];
+        bn = 0;
 
         for (int i = 0; i < len; i++) {
             char c = str.charAt(i);
@@ -818,7 +831,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
 
         writeInt(bn);
-        writeArray(b, 0, bn);
+        writeArrayByte(b, 0, bn);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
