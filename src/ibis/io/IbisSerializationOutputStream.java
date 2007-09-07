@@ -1030,6 +1030,7 @@ public class IbisSerializationOutputStream
     }
 
     public void close() throws IOException {
+        super.close();
         replacer = null;
         references = null;
         types = null;
@@ -1039,7 +1040,6 @@ public class IbisSerializationOutputStream
         level_stack = null;
         putfield_stack = null;
         lastClass = null;
-        super.close();
     }
 
     void assignHandle(Object ref, int hashCode) {
