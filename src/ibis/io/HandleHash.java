@@ -327,21 +327,23 @@ public final class HandleHash extends IOProperties {
         // Check if the table has grown. If not, we
         // can reuse the existing arrays.
 
-        if (size < initSize) {
+        if (present != 0) {
+            if (size < initSize) {
 
-            for (int i = 0; i < map.length; i++) {
-                map[i] = 0;
+                for (int i = 0; i < map.length; i++) {
+                    map[i] = 0;
+                }
+
+                for (int i = 0; i < size; i++) {
+                    nextBucket[i] = 0;
+                    dataBucket[i] = null;
+                }
+
+                size = 1;
+                present = 0;
+            } else {
+                init(initSize);
             }
-
-            for (int i = 0; i < size; i++) {
-                nextBucket[i] = 0;
-                dataBucket[i] = null;
-            }
-
-            size = 1;
-            present = 0;
-        } else {
-            init(initSize);
         }
     }
 

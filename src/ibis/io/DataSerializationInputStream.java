@@ -357,7 +357,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayBoolean: " + ref + " offset: " + off
+                logger.debug("readArrayBoolean: offset: " + off
                         + " len: " + len + " type: " + TYPE_BOOLEAN);
             }
             in.readArray(ref, off, len);
@@ -382,7 +382,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayByte: " + ref + " offset: " + off
+                logger.debug("readArrayByte: offset: " + off
                         + " len: " + len + " type: " + TYPE_BYTE);
             }
             in.readArray(ref, off, len);
@@ -407,7 +407,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayChar: " + new String(ref) + " offset: " + off
+                logger.debug("readArrayChar: offset: " + off
                         + " len: " + len + " type: " + TYPE_CHAR);
             }
             in.readArray(ref, off, len);
@@ -432,7 +432,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayShort: " + ref + " offset: " + off
+                logger.debug("readArrayShort: offset: " + off
                         + " len: " + len + " type: " + TYPE_SHORT);
             }
             in.readArray(ref, off, len);
@@ -457,7 +457,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayInt: " + ref + " offset: " + off
+                logger.debug("readArrayInt: offset: " + off
                         + " len: " + len + " type: " + TYPE_INT);
             }
             in.readArray(ref, off, len);
@@ -482,7 +482,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayLong: " + ref + " offset: " + off
+                logger.debug("readArrayLong: offset: " + off
                         + " len: " + len + " type: " + TYPE_LONG);
             }
             in.readArray(ref, off, len);
@@ -507,7 +507,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayFloat: " + ref + " offset: " + off
+                logger.debug("readArrayFloat: offset: " + off
                         + " len: " + len + " type: " + TYPE_FLOAT);
             }
             in.readArray(ref, off, len);
@@ -532,7 +532,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             }
             array_index++;
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readArrayDouble: " + ref + " offset: " + off
+                logger.debug("readArrayDouble: offset: " + off
                         + " len: " + len + " type: " + TYPE_DOUBLE);
             }
             in.readArray(ref, off, len);
