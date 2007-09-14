@@ -2,6 +2,7 @@
 
 package ibis.io;
 
+import ibis.ipl.IbisProperties;
 import ibis.util.TypedProperties;
 
 import org.apache.log4j.Level;
@@ -31,8 +32,7 @@ class IOProperties implements Constants {
     static final Logger logger = Logger.getLogger("ibis.io");
      
     static {
-        properties = new TypedProperties();
-        properties.loadDefaultConfigProperties();
+        properties = new TypedProperties(IbisProperties.getDefaultProperties());
     }
 
     static final String PROPERTY_PREFIX = "ibis.io.";
