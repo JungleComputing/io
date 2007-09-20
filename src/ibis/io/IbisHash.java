@@ -10,8 +10,6 @@ import ibis.util.Timer;
  * Goodies that differ from java.util.Hashtable:
  * + The calls into this hash are not synchronized. The caller is
  *   responsible for locking the hash.
- * + Optionally, deletions are supported. If they are not, inserts and
- *   lookups can be faster.
  * + Hash table size is always a power of two for fast modulo calculations.
  */
 final class IbisHash extends IOProperties {
@@ -44,12 +42,6 @@ final class IbisHash extends IOProperties {
 
     private int[] handleBucket;
 
-    private final boolean supportDelete;
-
-    private boolean[] deleted;
-
-    private int n_deleted;
-
     // if (STATS)
     private long contains;
 
@@ -72,8 +64,6 @@ final class IbisHash extends IOProperties {
 
     private ibis.util.Timer t_clear;
 
-    private ibis.util.Timer t_delete;
-
     private int offset = 0;
 
     private int size;
@@ -88,17 +78,7 @@ final class IbisHash extends IOProperties {
         this(MIN_BUCKETS);
     }
 
-    IbisHash(boolean supportDelete) {
-        this(MIN_BUCKETS, supportDelete);
-    }
-
     IbisHash(int sz) {
-        this(sz, false);
-    }
-
-    IbisHash(int sz, boolean supportDelete) {
-        this.supportDelete = supportDelete;
-
         int x = 1;
         while (x < sz) {
             x <<= 1;
@@ -118,7 +98,6 @@ final class IbisHash extends IOProperties {
             t_find = Timer.createTimer();
             t_rebuild = Timer.createTimer();
             t_clear = Timer.createTimer();
-            t_delete = Timer.createTimer();
         }
 
         if (STATS || TIMINGS) {
@@ -134,27 +113,15 @@ final class IbisHash extends IOProperties {
     private void newBucketSet(int sz) {
         dataBucket = new Object[sz];
         handleBucket = new int[sz];
-        if (supportDelete) {
-            deleted = new boolean[sz];
-        }
         alloc_size = sz;
     }
 
     private static final int hash_first(int b, int size) {
         return ((b >>> SHIFT1) ^ (b & ((1 << SHIFT2) - 1))) & (size-1);
-        // return ((b >>> SHIFT2) ^ (b & ((1 << SHIFT2) - 1))) & (size - 1);
-        // This is used in java.util.IdentityHashMap:
-        // return ((b << 1) - (b << 8)) & (size - 1);
-        // return (b - (b << 7)) & (size - 1);
     }
 
     private static final int hash_second(int b) {
         return (b & ~0x1) + 12345; /* some odd number */
-        // Jason suggests +1 to improve cache locality
-        // return 1;
-        // return (b & 0xffe) + 1;	/* some SMALL odd number */
-        // This is used in java.util.IdentityHashMap:
-        // return 1;
     }
 
     /**
@@ -206,10 +173,6 @@ final class IbisHash extends IOProperties {
             result = (b == null) ? 0 : handleBucket[ix];
         }
 
-        if (supportDelete && deleted[ix]) {
-            result = 0;
-        }
-
         if (TIMINGS) {
             t_find.stop();
         }
@@ -217,8 +180,7 @@ final class IbisHash extends IOProperties {
         if (ASSERTS) {
             if (result == 0) {
                 for (int i = offset; i < offset + size; i++) {
-                    if (dataBucket[i] == ref
-                            && (!supportDelete || !deleted[i])) {
+                    if (dataBucket[i] == ref) {
                         System.err.println("CORRUPTED HASH: find returns "
                                 + "'no' but it's there in bucket[" + i + "]");
                     }
@@ -238,8 +200,7 @@ final class IbisHash extends IOProperties {
      */
     private final void rebuild() {
 
-        if (2 * present <= size
-                && (!supportDelete || 4 * (present - n_deleted) <= size)) {
+        if (2 * present <= size) {
             return;
         }
 
@@ -253,7 +214,6 @@ final class IbisHash extends IOProperties {
 
         Object[] old_data = dataBucket;
         int[] old_handle = handleBucket;
-        boolean[] old_deleted = deleted;
 
         /* Only buy a new array when we really overflow.
          * If the array we allocated previously still has enough
@@ -269,7 +229,7 @@ final class IbisHash extends IOProperties {
         for (int i = 0; i < size; i++) {
             int ix = i + offset;
             Object b = old_data[ix];
-            if (b != null && (!supportDelete || !old_deleted[ix])) {
+            if (b != null) {
                 int h = System.identityHashCode(b);
                 int h0 = hash_first(h, n);
                 while (dataBucket[h0 + new_offset] != null) {
@@ -285,9 +245,6 @@ final class IbisHash extends IOProperties {
                 handleBucket[h0 + new_offset] = old_handle[ix];
                 if (!ASSERTS) {
                     old_data[ix] = null;
-                    if (supportDelete && old_deleted[ix]) {
-                        old_deleted[ix] = false;
-                    }
                 }
             }
         }
@@ -300,16 +257,12 @@ final class IbisHash extends IOProperties {
 
         if (ASSERTS) {
             for (int i = old_offset; i < old_offset + old_size; i++) {
-                if (old_data[i] != null && (!supportDelete || !old_deleted[i])
-                        && find(old_data[i]) == 0) {
+                if (old_data[i] != null && find(old_data[i]) == 0) {
                     System.err.println("CORRUPTED HASH after rebuild: "
                             + "cannot find item[" + i + "] = "
                             + Integer.toHexString(getHashCode(old_data[i])));
                 }
                 old_data[i] = null;
-                if (supportDelete && old_deleted[i]) {
-                    old_deleted[i] = false;
-                }
             }
             int cont = 0;
             for (int i = offset; i < offset + size; i++) {
@@ -353,7 +306,6 @@ final class IbisHash extends IOProperties {
         }
 
         int h0 = hash_first(hashCode, size);
-        int deleted_ix = -1;
 
         Object b = dataBucket[h0 + offset];
 
@@ -365,12 +317,6 @@ final class IbisHash extends IOProperties {
                     collisions++;
                 }
                 b = dataBucket[h0 + offset];
-                if (supportDelete && deleted[h0 + offset] && deleted_ix == -1) {
-                    deleted_ix = h0;
-                    if (!lazy) {
-                        break;
-                    }
-                }
             } while (b != null && b != ref);
         }
 
@@ -384,8 +330,7 @@ final class IbisHash extends IOProperties {
         if (ASSERTS) {
             if (lazy) {
                 for (int i = offset; i < offset + size; i++) {
-                    if (dataBucket[i] == ref
-                            && (!supportDelete || !deleted[i])) {
+                    if (dataBucket[i] == ref) {
                         System.err.println("CORRUPTED HASH: lazyPut finds "
                                 + "'no' but it's there in bucket[" + i + "]");
                     }
@@ -393,11 +338,6 @@ final class IbisHash extends IOProperties {
             }
         }
 
-        if (supportDelete && deleted_ix != -1) {
-            n_deleted--;
-            h0 = deleted_ix;
-            deleted[h0 + offset] = false;
-        }
         dataBucket[h0 + offset] = ref;
         handleBucket[h0 + offset] = handle;
 
@@ -434,53 +374,6 @@ final class IbisHash extends IOProperties {
     // synchronized
     final int lazyPut(Object ref, int handle) {
         return lazyPut(ref, handle, getHashCode(ref));
-    }
-
-    // synchronized
-    final boolean delete(Object ref, int hashCode) {
-        if (!supportDelete) {
-            throw new RuntimeException(
-                    "Delete in IbisHash with deletes turned off");
-        }
-
-        if (TIMINGS) {
-            t_delete.start();
-        }
-
-        int h0 = hash_first(hashCode, size);
-
-        Object b = dataBucket[h0 + offset];
-
-        if (b != null && b != ref) {
-            int h1 = hash_second(hashCode);
-            do {
-                h0 = mod(h0 + h1, size);
-                if (STATS) {
-                    collisions++;
-                }
-                b = dataBucket[h0 + offset];
-            } while (b != null && b != ref);
-        }
-
-        if (b == null || deleted[h0 + offset]) {
-            return false;
-        }
-
-        deleted[h0 + offset] = true;
-        n_deleted++;
-        present--;
-
-        if (TIMINGS) {
-            t_delete.stop();
-        }
-
-        rebuild();
-
-        return true;
-    }
-
-    final void delete(Object ref) {
-        delete(ref, getHashCode(ref));
     }
 
     // synchronized
@@ -534,9 +427,7 @@ final class IbisHash extends IOProperties {
                     + t_rebuild.nrTimes() + ") "
                     + Timer.format(t_rebuild.totalTimeVal()) + " clear("
                     + t_clear.nrTimes() + ") "
-                    + Timer.format(t_clear.totalTimeVal()) + " delete("
-                    + t_delete.nrTimes() + ") "
-                    + Timer.format(t_delete.totalTimeVal()));
+                    + Timer.format(t_clear.totalTimeVal()));
         }
     }
 }
