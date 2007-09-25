@@ -17,7 +17,6 @@ final class IbisHash extends IOProperties {
     private static final boolean ASSERTS
             = properties.getBooleanProperty(s_hash_asserts);
 
-    // private final boolean ASSERTS;
     private static final boolean STATS
             = properties.getBooleanProperty(s_hash_stats);
 

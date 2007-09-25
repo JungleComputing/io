@@ -27,8 +27,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             = properties.getBooleanProperty(s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
-    static java.util.Hashtable<Class, Integer> nonRewritten
-            = new java.util.Hashtable<Class, Integer>();
+    static java.util.Hashtable<Class, Integer> nonRewritten = null;
 
     // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
     // Use introspection, so that it at least compiles on systems that don't
@@ -81,6 +80,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             unsafe = null;
         }
         if (STATS_NONREWRITTEN) {
+            nonRewritten = new java.util.Hashtable<Class, Integer>();
             System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN"
                     + " enabled");
             Runtime.getRuntime().addShutdownHook(
