@@ -22,6 +22,7 @@ public final class OutputStreamSplitter extends OutputStream {
     private boolean removeOnException = false;
     private boolean saveException = false;
     private SplitterException savedException = null;
+    private long bytesWritten = 0;
 
     ArrayList<OutputStream> out = new ArrayList<OutputStream>();
 
@@ -151,6 +152,8 @@ public final class OutputStreamSplitter extends OutputStream {
             numSenders++;
         }
 
+        bytesWritten += out.size();
+
         for (int i = 0; i < out.size(); i++) {
             try {
                 out.get(i).write(b);
@@ -187,6 +190,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     public void write(byte[] b, int off, int len) throws IOException {
         if (out.size() > 0) {
+            bytesWritten += len * out.size();
             synchronized(this) {
                 while (numSenders != 0) {
                     try {
@@ -248,6 +252,14 @@ public final class OutputStreamSplitter extends OutputStream {
             doClose(0);
             done();
         }
+    }
+
+    public long bytesWritten() {
+        return bytesWritten;
+    }
+
+    public void resetBytesWritten() {
+        bytesWritten = 0;
     }
 
     public SplitterException getExceptions() {
