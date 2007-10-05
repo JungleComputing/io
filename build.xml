@@ -1,52 +1,54 @@
 <project name="Ibis IO" default="build" basedir=".">
-	<description>
-      Build file for Ibis IO package.
+    <description>
+	Build file for Ibis IO package.
     </description>
-	<property name="src" location="src" />
-	<property name="tmp" location="tmp" />
-	<property name="lib" location="lib" />
-	<property name="external" location="external" />
-	<property name="jar" location="${lib}/ibis-io.jar" />
+    <property name="src" location="src" />
+    <property name="tmp" location="tmp" />
+    <property name="lib" location="lib" />
+    <property name="external" location="external" />
 
-	<path id="external_jars">
-		<fileset dir="${external}">
-			<include name="*.jar" />
-		</fileset>
-	</path>
+    <property name="version" value="-2.0rc1"/>
+    <property name="jar" location="${lib}/ibis-io${version}.jar" />
 
-	<target name="init">
-		<!-- Create the time stamp -->
-		<tstamp />
+    <path id="external_jars">
+	<fileset dir="${external}">
+	    <include name="*.jar" />
+	</fileset>
+    </path>
 
-		<!-- Create the build directory structure used by compile -->
-		<mkdir dir="${tmp}" />
-	</target>
+    <target name="init">
+	<!-- Create the time stamp -->
+	<tstamp />
 
-	<target name="compile" depends="init" description="compile the source ">
-		<!-- Compile the java code from ${src} into ${tmp} -->
-		<javac srcdir="${src}" destdir="${tmp}" debug="on" >
-			<classpath refid="external_jars" />
-		</javac>
-	</target>
+	<!-- Create the build directory structure used by compile -->
+	<mkdir dir="${tmp}" />
+    </target>
 
-	<target name="build" depends="compile" description="build the JAR file">
-		<!-- Create the distribution directory -->
-		<mkdir dir="${lib}" />
+    <target name="compile" depends="init" description="compile the source ">
+	<!-- Compile the java code from ${src} into ${tmp} -->
+	<javac srcdir="${src}" destdir="${tmp}" debug="on" >
+	    <classpath refid="external_jars" />
+	</javac>
+    </target>
 
-		<!-- Put everything in ${tmp} into the jar file -->
-		<jar jarfile="${jar}" basedir="${tmp}">
-		    <manifest>
-			<attribute name="Ibisc-Component" value="ibis.io.rewriter.IOGenerator"/>
-		    </manifest>
-		</jar>
+    <target name="build" depends="compile" description="build the JAR file">
+	<!-- Create the distribution directory -->
+	<mkdir dir="${lib}" />
 
-		<!-- And delete the build dir -->
-		<delete dir="${tmp}" />
-	</target>
+	<!-- Put everything in ${tmp} into the jar file -->
+	<jar jarfile="${jar}" basedir="${tmp}">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.io.rewriter.IOGenerator"/>
+	    </manifest>
+	</jar>
 
-	<target name="dist" depends="build" description="build the JAR file" />
+	<!-- And delete the build dir -->
+	<delete dir="${tmp}" />
+    </target>
 
-	<target name="clean" description="clean up">
-		<delete dir="${lib}" />
-	</target>
+    <target name="dist" depends="build" description="build the JAR file" />
+
+    <target name="clean" description="clean up">
+	<delete dir="${lib}" />
+    </target>
 </project>
