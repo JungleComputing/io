@@ -5,7 +5,9 @@ package ibis.io;
 import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
+import java.util.Hashtable;
 
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
@@ -21,7 +23,7 @@ public class IbisSerializationOutputStream
             = properties.getBooleanProperty(s_stats_written);
 
     // if STATS_OBJECTS
-    static java.util.Hashtable<Class, Integer> statSendObjects;
+    static Hashtable<Class<?>, Integer> statSendObjects;
 
     static final int[] statArrayCount;
 
@@ -59,7 +61,7 @@ public class IbisSerializationOutputStream
                     });
             System.out.println("IbisSerializationOutputStream.STATS_OBJECTS "
                     + "enabled");
-            statSendObjects = new java.util.Hashtable<Class, Integer>();
+            statSendObjects = new Hashtable<Class<?>, Integer>();
             statArrayCount = new int[PRIMITIVE_TYPES];
             statArrayHandle = new int[PRIMITIVE_TYPES];
             statArrayLength = new long[PRIMITIVE_TYPES];
@@ -134,7 +136,7 @@ public class IbisSerializationOutputStream
 
     private int stack_size = 0;
 
-    private Class lastClass;
+    private Class<?> lastClass;
     private int   lastTypeno;
 
     /**
@@ -209,7 +211,7 @@ public class IbisSerializationOutputStream
         return 0;
     }
 
-    private static int arrayClassType(Class arrayClass) {
+    private static int arrayClassType(Class<?> arrayClass) {
         if (false) {
             // nothing
         } else if (arrayClass == classByteArray) {
@@ -313,7 +315,7 @@ public class IbisSerializationOutputStream
      * @param ref		the <code>Class</code> to be written
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public void writeClass(Class ref) throws IOException {
+    public void writeClass(Class<?> ref) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
@@ -468,7 +470,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        Class clazz = ref.getClass();
+        Class<?> clazz = ref.getClass();
         if (writeArrayHeader(ref, clazz, len, false)) {
             for (int i = off; i < off + len; i++) {
                 doWriteObject(ref[i]);
@@ -490,7 +492,7 @@ public class IbisSerializationOutputStream
      * 			of <code>ref</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    private boolean writeTypeHandle(Object ref, Class clazz)
+    private boolean writeTypeHandle(Object ref, Class<?> clazz)
             throws IOException {
         int handle = references.lazyPut(ref, next_handle);
 
@@ -523,7 +525,7 @@ public class IbisSerializationOutputStream
      * @return <code>true</code> if no cycle was or should be detected
      *  (so that the array should be written).
      */
-    private boolean writeArrayHeader(Object ref, Class clazz, int len,
+    private boolean writeArrayHeader(Object ref, Class<?> clazz, int len,
             boolean doCycleCheck) throws IOException {
         if (ref == null) {
             writeHandle(NUL_HANDLE);
@@ -556,7 +558,7 @@ public class IbisSerializationOutputStream
      * @param unshared	  set when no cycle detection check shoud be done
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    void writeArray(Object ref, Class arrayClass, boolean unshared)
+    void writeArray(Object ref, Class<?> arrayClass, boolean unshared)
             throws IOException {
         String s = arrayClass.getName();
         switch (s.charAt(1)) {
@@ -642,7 +644,7 @@ public class IbisSerializationOutputStream
      * @param clazz	represents the type to be added
      * @return		the type number.
      */
-    private int newType(Class clazz) {
+    private int newType(Class<?> clazz) {
         int type_number = next_type++;
 
         type_number = (type_number | TYPE_BIT);
@@ -656,7 +658,7 @@ public class IbisSerializationOutputStream
      * @param clazz		the clazz to be written.
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    void writeType(Class clazz) throws IOException {
+    void writeType(Class<?> clazz) throws IOException {
         int type_number;
 
         if (clazz == lastClass) {
@@ -706,7 +708,7 @@ public class IbisSerializationOutputStream
         int handle = references.lazyPut(ref, next_handle);
         if (handle == next_handle) {
             // System.err.write("+");
-            Class clazz = ref.getClass();
+            Class<?> clazz = ref.getClass();
             next_handle++;
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeKnownObjectHeader -> writing NEW object, class = "
@@ -980,7 +982,7 @@ public class IbisSerializationOutputStream
 
     static void addStatSendObject(Object ref) {
         if (STATS_OBJECTS) {
-            Class clazz = ref.getClass();
+            Class<?> clazz = ref.getClass();
             Integer n = statSendObjects.get(clazz);
             if (n == null) {
                 n = new Integer(1);
@@ -1007,7 +1009,7 @@ public class IbisSerializationOutputStream
 
     private static void addStatSendArrayHandle(Object ref, int len) {
         if (STATS_OBJECTS) {
-            Class arrayClass = ref.getClass();
+            Class<?> arrayClass = ref.getClass();
             int type = arrayClassType(arrayClass);
             if (type == -1) {
                 statObjectHandle++;
@@ -1083,7 +1085,7 @@ public class IbisSerializationOutputStream
         int handle = references.find(ref, hashCode);
 
         if (handle == 0) {
-            Class clazz = ref.getClass();
+            Class<?> clazz = ref.getClass();
             AlternativeTypeInfo t
                         = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
             if (DEBUG && logger.isDebugEnabled()) {
@@ -1122,7 +1124,7 @@ public class IbisSerializationOutputStream
      */
     public void defaultWriteSerializableObject(Object ref, int depth)
             throws IOException {
-        Class clazz = ref.getClass();
+        Class<?> clazz = ref.getClass();
         AlternativeTypeInfo t
                 = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
@@ -1144,7 +1146,7 @@ public class IbisSerializationOutputStream
 
     private JavaObjectOutputStream objectStream = null;
 
-    public java.io.ObjectOutputStream getJavaObjectOutputStream()
+    public ObjectOutputStream getJavaObjectOutputStream()
             throws IOException {
         if (objectStream == null) {
             objectStream = new JavaObjectOutputStream(this);
@@ -1152,7 +1154,7 @@ public class IbisSerializationOutputStream
         return objectStream;
     }
 
-    private class JavaObjectOutputStream extends java.io.ObjectOutputStream {
+    private class JavaObjectOutputStream extends ObjectOutputStream {
 
         IbisSerializationOutputStream ibisStream;
 
@@ -1172,7 +1174,7 @@ public class IbisSerializationOutputStream
             }
 
             Object ref = current_object;
-            Class clazz = ref.getClass();
+            Class<?> clazz = ref.getClass();
             AlternativeTypeInfo t
                     = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
@@ -1223,7 +1225,7 @@ public class IbisSerializationOutputStream
              Note that the needed info is available in AlternativeTypeInfo,
              but we don't want to use that when we have ibis.io.Serializable.
              */
-            Class clazz = ref.getClass();
+            Class<?> clazz = ref.getClass();
             AlternativeTypeInfo t
                     = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
@@ -1250,7 +1252,7 @@ public class IbisSerializationOutputStream
 
         protected void writeClassDescriptor(ObjectStreamClass desc)
                 throws IOException {
-            Class cl = desc.forClass();
+            Class<?> cl = desc.forClass();
             if (cl == null) {
                 ibisStream.writeHandle(NUL_HANDLE);
                 return;
@@ -1274,7 +1276,7 @@ public class IbisSerializationOutputStream
                 if (current_object == null) {
                     throw new NotActiveException("not in writeObject");
                 }
-                Class clazz = current_object.getClass();
+                Class<?> clazz = current_object.getClass();
                 AlternativeTypeInfo t
                         = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
                 current_putfield = new ImplPutField(t);

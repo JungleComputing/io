@@ -33,8 +33,8 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
      * Maintains all <code>AlternativeTypeInfo</code> structures in a
      * hashmap, to be accessed through their classname.
      */
-    private static HashMap<Class, AlternativeTypeInfo> alternativeTypes
-            = new HashMap<Class, AlternativeTypeInfo>();
+    private static HashMap<Class<?>, AlternativeTypeInfo> alternativeTypes
+            = new HashMap<Class<?>, AlternativeTypeInfo>();
 
     /** newInstance method of ObjectStreamClass, when it exists. */
     private static Method newInstance = null;
@@ -91,7 +91,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
-            out.writeUTF(((Enum) ref).name());
+            out.writeUTF(((Enum<?>) ref).name());
         }
     }
 
@@ -169,7 +169,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             String o = in.readUTF();
             Object obj;
             try {
-                obj = java.lang.Enum.valueOf(t.clazz, o);
+                obj = Enum.valueOf((Class)t.clazz, o);
             } catch(Throwable e) {
                 throw new IOException("Exception while reading enumeration"
                         + e);
@@ -225,7 +225,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
      * The <code>Class</code> structure of the class represented by this
      * <code>AlternativeTypeInfo</code> structure.
      */
-    Class clazz;
+    Class<?> clazz;
 
     /** The ObjectStreamClass of clazz. */
     private ObjectStreamClass objectStreamClass;
@@ -407,7 +407,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
      * @return the <code>AlternativeTypeInfo</code> structure for this type.
      */
     public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(
-            Class type) {
+            Class<?> type) {
         AlternativeTypeInfo t = alternativeTypes.get(type);
 
         if (t == null) {
@@ -427,7 +427,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
      */
     public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(
             String classname) throws ClassNotFoundException {
-        Class type = null;
+        Class<?> type = null;
 
         try {
             type = Class.forName(classname);
@@ -448,7 +448,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
      * @return			the requested method, or <code>null</code> if
      * 				it cannot be found.
      */
-    private Method getMethod(String name, Class[] paramTypes, Class returnType) {
+    private Method getMethod(String name, Class<?>[] paramTypes, Class<?> returnType) {
         try {
             Method method = clazz.getDeclaredMethod(name, paramTypes);
 
@@ -561,7 +561,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             getSerialPersistentFields();
 
             /* see if the supertype is serializable */
-            Class superClass = clazz.getSuperclass();
+            Class<?> superClass = clazz.getSuperclass();
 
             if (superClass != null) {
                 if (java.io.Serializable.class.isAssignableFrom(superClass)) {
@@ -577,9 +577,9 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             /* Now see if it has a writeObject/readObject. */
 
             writeObjectMethod = getMethod("writeObject",
-                    new Class[] { ObjectOutputStream.class }, Void.TYPE);
+                    new Class<?>[] { ObjectOutputStream.class }, Void.TYPE);
             readObjectMethod = getMethod("readObject",
-                    new Class[] { ObjectInputStream.class }, Void.TYPE);
+                    new Class<?>[] { ObjectInputStream.class }, Void.TYPE);
 
             hasWriteObject = writeObjectMethod != null;
             hasReadObject = readObjectMethod != null;
@@ -597,7 +597,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             // would also return true if a parent class implements
             // ibis.io.Serializable, which is not good enough.
 
-            Class[] intfs = clazz.getInterfaces();
+            Class<?>[] intfs = clazz.getInterfaces();
 
             for (int i = 0; i < intfs.length; i++) {
                 if (intfs[i].equals(ibis.io.Serializable.class)) {
@@ -615,7 +615,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             if (isArray || isString || isClass) {
                 gen = null;
             } else {
-                Class gen_class = null;
+                Class<?> gen_class = null;
                 String name = clazz.getName() + "_ibis_io_Generator";
                 try {
                     gen_class = Class.forName(name);
@@ -689,7 +689,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
                     if ((modifiers & (Modifier.TRANSIENT | Modifier.STATIC))
                             == 0) {
-                        Class field_type = field.getType();
+                        Class<?> field_type = field.getType();
 
                         /* This part is a bit scary. We basically switch of the
                          * Java field access checks so we are allowed to read
@@ -732,7 +732,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             } else {
                 for (int i = 0; i < serial_persistent_fields.length; i++) {
                     Field field = findField(serial_persistent_fields[i]);
-                    Class field_type = serial_persistent_fields[i].getType();
+                    Class<?> field_type = serial_persistent_fields[i].getType();
                     if (field != null && !field.isAccessible()) {
                         temporary_field = field;
                         AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -932,7 +932,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
      * <code>serializable_fields</code>.
      * @exception IllegalArgumentException when no such field is found.
      */
-    int getOffset(String name, Class tp) throws IllegalArgumentException {
+    int getOffset(String name, Class<?> tp) throws IllegalArgumentException {
         int offset = 0;
 
         if (tp.isPrimitive()) {
@@ -981,8 +981,8 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 + " with type " + tp);
     }
 
-    static Class getClass(String n) {
-        Class c = null;
+    static Class<?> getClass(String n) {
+        Class<?> c = null;
         try {
             c = Class.forName(n);
         } catch (ClassNotFoundException e) {

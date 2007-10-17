@@ -5,6 +5,7 @@ package ibis.io;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
+import java.util.Vector;
 
 /**
  * A base class for all Ibis serialization classes, providing some
@@ -22,8 +23,8 @@ public class SerializationBase extends IOProperties {
     protected final SerializationTimer timer
         = TIME_SERIALIZATION ? new SerializationTimer(toString()) : null;
 
-    private static java.util.Vector<SerializationTimer> timerList
-            = new java.util.Vector<SerializationTimer>();
+    private static Vector<SerializationTimer> timerList
+            = new Vector<SerializationTimer>();
 
     static {
         if (TIME_SERIALIZATION) {
@@ -124,7 +125,7 @@ public class SerializationBase extends IOProperties {
         String impl = implName(name) + "InputStream";
         try {
             Class<?> cl = Class.forName(impl);
-            Constructor cons =
+            Constructor<?> cons =
                     cl.getConstructor(new Class[] {DataInputStream.class});
             return (SerializationInput) cons.newInstance(new Object[] {in});
         } catch(ClassNotFoundException e) {
@@ -159,7 +160,7 @@ public class SerializationBase extends IOProperties {
         String impl = implName(name) + "OutputStream";
         try {
             Class<?> cl = Class.forName(impl);
-            Constructor cons =
+            Constructor<?> cons =
                     cl.getConstructor(new Class[] {DataOutputStream.class});
             return (SerializationOutput) cons.newInstance(new Object[] {out});
         } catch(ClassNotFoundException e) {

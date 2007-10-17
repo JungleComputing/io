@@ -212,7 +212,7 @@ public class IOProperties implements Constants {
     }
 
     private static void addProperties(Properties props, Properties p) {
-        for (Enumeration e = p.propertyNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = p.propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
             String value = p.getProperty(key);
             props.setProperty(key, value);

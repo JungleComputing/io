@@ -2131,7 +2131,7 @@ public class IOGenerator extends ibis.frontend.IbiscComponent {
     public void process(Iterator classes) {
         fromIbisc = true;
         arguments = new HashMap<String, JavaClass> ();
-        for (Iterator i = classes; i.hasNext();) {
+        for (Iterator<?> i = classes; i.hasNext();) {
             JavaClass cl = (JavaClass) i.next();
             arguments.put(cl.getClassName(), cl);
         }

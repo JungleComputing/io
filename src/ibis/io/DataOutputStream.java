@@ -3,6 +3,7 @@
 package ibis.io;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * A general data output stream.
@@ -17,7 +18,7 @@ import java.io.IOException;
  * when regarding a <code>DataOutputStream</code> as a
  * <code>java.io.OutputStream</code>.
  */
-public abstract class DataOutputStream extends java.io.OutputStream
+public abstract class DataOutputStream extends OutputStream
         implements DataOutput {
 
     /**
