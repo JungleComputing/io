@@ -1146,10 +1146,6 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldString(Object ref, String fieldname, String classname)
             throws IOException {
         String d = readString();
-<<<<<<< .mine
-
-=======
->>>>>>> .r6566
         if (unsafe != null) {
             try {
                 Class<?> cl = getClassFromName(classname);
