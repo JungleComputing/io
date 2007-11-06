@@ -1021,7 +1021,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      */
     public void readFieldFloat(Object ref, String fieldname, String classname)
             throws IOException {
@@ -1041,7 +1041,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      */
     public void readFieldInt(Object ref, String fieldname, String classname)
             throws IOException {
@@ -1061,7 +1061,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      */
     public void readFieldShort(Object ref, String fieldname, String classname)
             throws IOException {
