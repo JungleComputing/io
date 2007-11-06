@@ -55,7 +55,11 @@
         </javadoc>
 
         <!-- Put everything in ${tmp} into the jar file -->
-        <jar jarfile="${jar}" basedir="${tmp}" />
+        <jar jarfile="${jar}" basedir="${tmp}">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.io.rewriter.IOGenerator"/>
+	    </manifest>
+	</jar>
 
         <!-- create a zip file with the sources -->
         <zip destfile="${sources}/${sources-filename}.zip">
