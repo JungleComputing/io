@@ -64,7 +64,7 @@ import org.apache.bcel.generic.Type;
 /* TODO: docs.
  */
 
-public class IOGenerator extends ibis.frontend.IbiscComponent {
+public class IOGenerator extends ibis.compile.IbiscComponent {
     private static final String ibis_input_stream_name
             = "ibis.io.IbisSerializationInputStream";
 
