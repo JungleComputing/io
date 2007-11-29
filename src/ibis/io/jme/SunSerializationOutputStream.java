@@ -2,6 +2,8 @@
 
 package ibis.io.jme;
 
+import ibis.io.Replacer;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -16,7 +18,7 @@ import java.io.OutputStream;
  * {@link DataOutputStream}.
  */
 public final class SunSerializationOutputStream
-        extends java.io.ObjectOutputStream implements SerializationOutput {
+        extends java.io.ObjectOutputStream implements ObjectOutput {
 
     private Replacer replacer;
 

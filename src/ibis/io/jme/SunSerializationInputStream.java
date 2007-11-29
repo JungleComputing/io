@@ -13,7 +13,7 @@ import java.io.InputStream;
  * <code>ObjectInputStream</code>.
  */
 public final class SunSerializationInputStream
-        extends java.io.ObjectInputStream implements SerializationInput {
+        extends java.io.ObjectInputStream implements ObjectInput {
 
     private InputStream in;
 

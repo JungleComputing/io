@@ -120,14 +120,14 @@ public class SerializationBase extends IOProperties {
      * @param in   the underlying input stream.
      * @return the serialization input stream.
      */
-    public static SerializationInput createSerializationInput(String name,
+    public static ObjectInput createSerializationInput(String name,
             DataInputStream in) throws IOException {
         String impl = implName(name) + "InputStream";
         try {
             Class<?> cl = Class.forName(impl);
             Constructor<?> cons =
                     cl.getConstructor(new Class[] {DataInputStream.class});
-            return (SerializationInput) cons.newInstance(new Object[] {in});
+            return (ObjectInput) cons.newInstance(new Object[] {in});
         } catch(ClassNotFoundException e) {
             throw new IbisIOException("No such class: " + impl, e);
         } catch(NoSuchMethodException e) {
@@ -155,14 +155,14 @@ public class SerializationBase extends IOProperties {
      * @param out   the underlying output stream.
      * @return the serialization output stream.
      */
-    public static SerializationOutput createSerializationOutput(String name,
+    public static ObjectOutput createSerializationOutput(String name,
             DataOutputStream out) throws IOException {
         String impl = implName(name) + "OutputStream";
         try {
             Class<?> cl = Class.forName(impl);
             Constructor<?> cons =
                     cl.getConstructor(new Class[] {DataOutputStream.class});
-            return (SerializationOutput) cons.newInstance(new Object[] {out});
+            return (ObjectOutput) cons.newInstance(new Object[] {out});
         } catch(ClassNotFoundException e) {
             throw new IbisIOException("No such class: " + impl, e);
         } catch(NoSuchMethodException e) {

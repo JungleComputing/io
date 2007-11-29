@@ -2,29 +2,20 @@
 
 package ibis.io.jme;
 
+import ibis.io.Replacer;
+import ibis.io.SerializationOutput;
+
 import java.io.IOException;
 
 /** 
- * The <code>SerializationOutput</code> interface specifies which methods
- * must be implemented by any serialization output stream type. Some
- * of these methods may just throw an exception, depending on the
- * serialization type. For instance, the <code>writeInt</code> method
- * of a "byte" serialization output stream will just throw an exception.
- * <p>
- * For all write methods in this interface, the invariant is that the reads
- * must match the writes one by one. The only exception to this rule is that an
- * array written with any of the <code>writeArray</code> methods can be
- * read by
- * {@link SerializationInput#readObject SerializationInput.readObject}.
- * <strong>
- * In particular, an array written with {@link #writeObject writeObject}
- * cannot be read with <code>readArray</code>, because
- * {@link #writeObject writeObject} does duplicate detection, and may
- * have written only a handle.
- * </strong>
+ * The <code>ObjectInput</code> is a rename of the SerializationInput
+ * interface in order to support replacement of classes using Sun
+ * serialization with just a change in packages since Sun serialization
+ * has an <code>ObjectInput</code> interface on it's 
+ * <code>ObjectStream*</code> classes.
  **/
 
-public interface SerializationOutput extends DataOutput {
+public interface ObjectOutput extends SerializationOutput {
 
     /**
      * Resets the state of any objects already written to this output.

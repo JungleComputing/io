@@ -2,6 +2,8 @@
 
 package ibis.io.jme;
 
+import ibis.io.Replacer;
+
 import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.ObjectOutput;

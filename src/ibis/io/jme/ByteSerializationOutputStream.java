@@ -2,6 +2,8 @@
 
 package ibis.io.jme;
 
+import ibis.io.Replacer;
+
 import java.io.IOException;
 
 /**
@@ -15,7 +17,7 @@ import java.io.IOException;
  * serialization.
  */
 public class ByteSerializationOutputStream extends SerializationBase
-        implements SerializationOutput {
+        implements ObjectOutput {
 
     /** The underlying stream. */
     DataOutputStream out;
