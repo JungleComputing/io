@@ -1,7 +1,5 @@
 package ibis.io.rewriter;
 
-import ibis.io.rewriter.IOGenerator.CodeGenerator;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.security.MessageDigest;
