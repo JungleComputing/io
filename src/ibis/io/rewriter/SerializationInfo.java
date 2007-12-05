@@ -168,7 +168,7 @@ class SerializationInfo implements RewriterConstants {
     static boolean isSerializable(JavaClass clazz) {
         return Repository.implementationOf(clazz, TYPE_JAVA_IO_SERIALIZABLE);
     }
-
+	
     static boolean hasSerialPersistentFields(Field[] fields) {
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];

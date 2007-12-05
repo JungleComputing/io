@@ -2,13 +2,10 @@
 
 package ibis.io.rewriter;
 
-import java.util.Arrays;
-
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.AALOAD;
 import org.apache.bcel.generic.AASTORE;
 import org.apache.bcel.generic.ACONST_NULL;
@@ -20,9 +17,7 @@ import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ClassGen;
-import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.DUP;
-import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.GOTO;
 import org.apache.bcel.generic.IAND;
 import org.apache.bcel.generic.ICONST;
@@ -57,130 +52,55 @@ import org.apache.bcel.generic.Type;
  * @author Nick Palmer (npr200@few.vu.nl)
  *
  */
-class CodeGenerator implements RewriterConstants {
+class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERewriterConstants {
 
-	private static final String TYPE_JAVA_IO_OBJECT_INPUT = "java.io.ObjectInput";
+    boolean super_is_jme_serializable;
 
-	protected JavaClass clazz;
+    boolean super_is_ibis_serializable;
 
-    protected ClassGen gen;
+    boolean super_has_jme_constructor;
 
-    protected String classname;
+    boolean is_jme_externalizable;
 
-    protected String super_classname;
-
-    protected JavaClass super_class;
-
-    protected boolean super_is_serializable;
-
-    protected boolean super_is_ibis_serializable;
-
-    protected boolean super_has_ibis_constructor;
-
-    protected boolean is_externalizable;
-
-    protected boolean has_serial_persistent_fields;
-
-    protected boolean has_final_fields;
-
-    protected Field[] fields;
-
-    protected Method[] methods;
-
-    protected InstructionFactory factory;
-
-    protected ConstantPoolGen constantpool;
-
-    protected IOGenerator generator;
+    boolean has_jme_serial_persistent_fields;
     
-    CodeGenerator(IOGenerator generator, JavaClass cl) {
-    	this.generator = generator;
-        clazz = cl;
-        gen = new ClassGen(clazz);
-        classname = clazz.getClassName();
-        super_classname = clazz.getSuperclassName();
-        super_class = Repository.lookupClass(super_classname);
-        fields = gen.getFields();
-        methods = gen.getMethods();
-        factory = new InstructionFactory(gen);
-        constantpool = gen.getConstantPool();
-
-        versionUID();
-
-        /* getFields() does not specify or guarantee a specific order.
-         * Therefore, we sort the fields alphabetically, and the
-         * serialization code in ibis.io should do the same.
-         */
-        Arrays.sort(fields, SerializationInfo.fieldComparator);
-
-        super_is_serializable = SerializationInfo.isSerializable(super_class);
-        is_externalizable = SerializationInfo.isExternalizable(cl);
-        super_is_ibis_serializable = SerializationInfo.isIbisSerializable(super_class);
-        super_has_ibis_constructor = SerializationInfo.hasIbisConstructor(super_class);
-        has_serial_persistent_fields = SerializationInfo.hasSerialPersistentFields(fields);
-        has_final_fields = SerializationInfo.hasFinalFields(fields);
-    }
-
-    /**
-     * Get the serialversionuid of a class that is about to be
-     * rewritten. If necessary, a serialVersionUID field is added.
-     */
-    private void versionUID() {
-        for (int i = 0; i < fields.length; i++) {
-            Field f = fields[i];
-            if (f.getName().equals(FIELD_SERIAL_VERSION_UID) && f.isFinal()
-                    && f.isStatic()) {
-                /* Already present. Just return. */
-                return;
-            }
-        }
-
-        long uid = 0;
-        uid = SerializationInfo.getSerialVersionUID(classname, clazz);
-
-        if (uid != 0) {
-            FieldGen f = new FieldGen(Constants.ACC_PRIVATE
-                    | Constants.ACC_FINAL | Constants.ACC_STATIC,
-                    Type.LONG, FIELD_SERIAL_VERSION_UID, constantpool);
-            f.setInitValue(uid);
-            gen.addField(f.getField());
-            fields = gen.getFields();
-        }
+    JMECodeGenerator(IOGenerator generator, JavaClass cl) {
+    	super(generator, cl);
+    	
+        super_is_jme_serializable = JMESerializationInfo.isJMESerializable(super_class);
+        is_jme_externalizable = JMESerializationInfo.isJMEExternalizable(cl);
+        super_has_jme_constructor = JMESerializationInfo.hasJMEConstructor(super_class);
+        has_jme_serial_persistent_fields = JMESerializationInfo.hasJMESerialPersistentFields(fields);
     }
 
     private Instruction createGeneratedWriteObjectInvocation(String name,
             short invmode) {
-        return factory.createInvoke(name, METHOD_GENERATED_WRITE_OBJECT,
-                Type.VOID, ibis_output_stream_arrtp, invmode);
+        return factory.createInvoke(name, METHOD_GENERATED_JME_WRITE_OBJECT,
+                Type.VOID, jme_output_stream_arrtp, invmode);
     }
 
     private Instruction createGeneratedDefaultReadObjectInvocation(
             String name, InstructionFactory fac, short invmode) {
-        return fac.createInvoke(name, METHOD_GENERATED_DEFAULT_READ_OBJECT,
-                Type.VOID, new Type[] { ibis_input_stream, Type.INT },
+        return fac.createInvoke(name, METHOD_GENERATED_JME_DEFAULT_READ_OBJECT,
+                Type.VOID, new Type[] { jme_input_stream, Type.INT },
                 invmode);
     }
 
     private Instruction createInitInvocation(String name,
             InstructionFactory f) {
         return f.createInvoke(name, METHOD_INIT, Type.VOID,
-                ibis_input_stream_arrtp, Constants.INVOKESPECIAL);
+                jme_input_stream_arrtp, Constants.INVOKESPECIAL);
     }
 
     private Instruction createGeneratedDefaultWriteObjectInvocation(
             String name) {
-        return factory.createInvoke(name, METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
-                Type.VOID, new Type[] { ibis_output_stream, Type.INT },
+        return factory.createInvoke(name, METHOD_GENERATED_JME_DEFAULT_WRITE_OBJECT,
+                Type.VOID, new Type[] { jme_output_stream, Type.INT },
                 Constants.INVOKESPECIAL);
     }
 
-    private Instruction createWriteObjectInvocation() {
-        return factory.createInvoke(classname, METHOD_WRITE_OBJECT, Type.VOID,
-                new Type[] { sun_output_stream }, Constants.INVOKESPECIAL);
-    }
-
     private int getClassDepth(JavaClass cl) {
-        if (!SerializationInfo.isSerializable(cl)) {
+        if (!JMESerializationInfo.isJMESerializable(cl)) {
             return 0;
         }
         return 1 + getClassDepth(Repository.lookupClass(
@@ -194,12 +114,12 @@ class CodeGenerator implements RewriterConstants {
             System.out.println("  Generating empty methods for class : "
                     + classname);
             System.out.println("    " + classname
-                    + " implements java.io.Serializable -> adding "
-                    + TYPE_IBIS_IO_SERIALIZABLE);
+                    + " implements java.io.jme.Serializable -> adding "
+                    + TYPE_IBIS_IO_JME_JMESERIALIZABLE);
         }
 
-        /* add the ibis.io.Serializable interface to the class */
-        gen.addInterface(TYPE_IBIS_IO_SERIALIZABLE);
+        /* add the ibis.io.JMESerializable interface to the class */
+        gen.addInterface(TYPE_IBIS_IO_JME_JMESERIALIZABLE);
 
         /* Construct a write method */
         InstructionList il = new InstructionList();
@@ -209,8 +129,8 @@ class CodeGenerator implements RewriterConstants {
                 | (gen.isFinal() ? Constants.ACC_FINAL : 0);
 
         MethodGen write_method = new MethodGen(flags, Type.VOID,
-                ibis_output_stream_arrtp, new String[] { VARIABLE_OUTPUT_STREAM },
-                METHOD_GENERATED_WRITE_OBJECT, classname, il, constantpool);
+                jme_output_stream_arrtp, new String[] { VARIABLE_OUTPUT_STREAM },
+                METHOD_GENERATED_JME_WRITE_OBJECT, classname, il, constantpool);
 
         write_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
         gen.addMethod(write_method.getMethod());
@@ -220,9 +140,9 @@ class CodeGenerator implements RewriterConstants {
         il.append(new RETURN());
 
         MethodGen default_write_method = new MethodGen(flags, Type.VOID,
-                new Type[] { ibis_output_stream, Type.INT }, new String[] {
+                new Type[] { jme_output_stream, Type.INT }, new String[] {
                         VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
-                        METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
+                        METHOD_GENERATED_JME_DEFAULT_WRITE_OBJECT,
                 classname, il, constantpool);
 
         default_write_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
@@ -233,9 +153,9 @@ class CodeGenerator implements RewriterConstants {
         il.append(new RETURN());
 
         MethodGen default_read_method = new MethodGen(flags, Type.VOID,
-                new Type[] { ibis_input_stream, Type.INT }, new String[] {
+                new Type[] { jme_input_stream, Type.INT }, new String[] {
                         VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
-                        METHOD_GENERATED_DEFAULT_READ_OBJECT,
+                        METHOD_GENERATED_JME_DEFAULT_READ_OBJECT,
                 classname, il, constantpool);
 
         default_read_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
@@ -246,13 +166,13 @@ class CodeGenerator implements RewriterConstants {
         /* Construct a read-of-the-stream constructor, but only when we
          * can actually use it.
          */ 
-        if (is_externalizable || !super_is_serializable
-                || generator.forceGeneratedCalls() || super_has_ibis_constructor) {
+        if (is_jme_externalizable || !super_is_jme_serializable
+                || generator.forceGeneratedCalls() || super_has_jme_constructor) {
             il = new InstructionList();
             il.append(new RETURN());
 
             MethodGen read_cons = new MethodGen(Constants.ACC_PUBLIC,
-                    Type.VOID, ibis_input_stream_arrtp,
+                    Type.VOID, jme_input_stream_arrtp,
                     new String[] { VARIABLE_INPUT_STREAM }, METHOD_INIT, classname, il,
                     constantpool);
             read_cons.addException(TYPE_JAVA_IO_IOEXCEPTION);
@@ -263,7 +183,7 @@ class CodeGenerator implements RewriterConstants {
             il.append(new RETURN());
             MethodGen readobjectWrapper = new MethodGen(
                     Constants.ACC_PUBLIC, Type.VOID,
-                    ibis_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
+                    jme_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
                     METHOD_$READ_OBJECT_WRAPPER$, classname, il, constantpool);
             readobjectWrapper.addException(TYPE_JAVA_IO_IOEXCEPTION);
             readobjectWrapper.addException(
@@ -295,7 +215,7 @@ class CodeGenerator implements RewriterConstants {
         temp.append(new ALOAD(0));
         temp.append(factory.createFieldAccess(classname, field.getName(),
                 t, Constants.GETFIELD));
-        temp.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+        temp.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                 info.write_name, Type.VOID, info.param_tp_arr,
                 Constants.INVOKEVIRTUAL));
 
@@ -318,7 +238,7 @@ class CodeGenerator implements RewriterConstants {
         if (from_constructor || !field.isFinal()) {
             temp.append(new ALOAD(0));
             temp.append(new ALOAD(1));
-            temp.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+            temp.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     info.read_name, info.tp, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
 
@@ -339,7 +259,7 @@ class CodeGenerator implements RewriterConstants {
                 int ind2 = constantpool.addString(field_sig);
                 temp.append(new LDC(ind2));
             }
-            temp.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+            temp.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                                 info.final_read_name, Type.VOID,
                                 info.primitive ? new Type[] {
                                         Type.OBJECT, Type.STRING,
@@ -395,15 +315,15 @@ class CodeGenerator implements RewriterConstants {
 
         if ((basicname != null)
                 || (isfinal
-                        && (SerializationInfo.hasIbisConstructor(field_class)
-                                || (SerializationInfo.isSerializable(field_class)
+                        && (JMESerializationInfo.hasJMEConstructor(field_class)
+                                || (JMESerializationInfo.isJMESerializable(field_class)
                                         && generator.forceGeneratedCalls())))) {
             // If there is an object replacer, we cannot do the
             // "fast" code.
             write_il.append(new ACONST_NULL());
             write_il.append(new ALOAD(1));
             write_il.append(factory.createFieldAccess(
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, VARIABLE_REPLACER, 
+                        TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM, VARIABLE_REPLACER, 
                         new ObjectType(TYPE_IBIS_IO_REPLACER),
                         Constants.GETFIELD));
             IF_ACMPEQ replacertest = new IF_ACMPEQ(null);
@@ -419,16 +339,16 @@ class CodeGenerator implements RewriterConstants {
                     field.getName(), field_type, Constants.GETFIELD));
             if (basicname != null) {
                 write_il.append(factory.createFieldAccess(
-                        TYPE_IBIS_IO_CONSTANTS,
+                        TYPE_IBIS_IO_JME_CONSTANTS,
                         "TYPE_" + basicname.toUpperCase(), Type.INT,
                         Constants.GETSTATIC));
                 write_il.append(factory.createInvoke(
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_KNOWN_ARRAY_HEADER,
+                        TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM, METHOD_WRITE_KNOWN_ARRAY_HEADER,
                         Type.INT, new Type[] { Type.OBJECT, Type.INT },
                         Constants.INVOKEVIRTUAL));
             } else {
                 write_il.append(factory.createInvoke(
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_KNOWN_OBJECT_HEADER,
+                        TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM, METHOD_WRITE_KNOWN_OBJECT_HEADER,
                         Type.INT, new Type[] { Type.OBJECT },
                         Constants.INVOKEVIRTUAL));
             }
@@ -450,7 +370,7 @@ class CodeGenerator implements RewriterConstants {
                 write_il.append(new ISTORE(4));
                 write_il.append(
                         factory.createInvoke(
-                                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                                TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                                 METHOD_WRITE_INT,
                                 Type.VOID, new Type[] { Type.INT },
                                 Constants.INVOKEVIRTUAL));
@@ -465,7 +385,7 @@ class CodeGenerator implements RewriterConstants {
                     write_il.append(new ILOAD(4));
                     write_il.append(
                             factory.createInvoke(
-                                TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                                TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                                 writeCallName(basicname), Type.VOID,
                                 new Type[] { field_type, Type.INT,
                                         Type.INT },
@@ -488,7 +408,7 @@ class CodeGenerator implements RewriterConstants {
 
                     write_il.append(
                             factory.createInvoke(
-                                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                                    TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                                     METHOD_WRITE_KNOWN_OBJECT_HEADER, Type.INT,
                                     new Type[] { Type.OBJECT },
                                     Constants.INVOKEVIRTUAL));
@@ -543,7 +463,7 @@ class CodeGenerator implements RewriterConstants {
     private InstructionList serialPersistentWrites(MethodGen write_gen) {
         Instruction persistent_field_access = factory.createFieldAccess(
                 classname, FIELD_SERIAL_PERSISTENT_FIELDS, new ArrayType(
-                        new ObjectType(TYPE_JAVA_IO_OBJECT_STREAM_FIELD), 1),
+                        new ObjectType(TYPE_IBIS_IO_JME_OBJECT_STREAM_FIELD), 1),
                 Constants.GETSTATIC);
         InstructionList write_il = new InstructionList();
         int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT,
@@ -749,7 +669,7 @@ class CodeGenerator implements RewriterConstants {
     private InstructionList generateDefaultWrites(MethodGen write_gen) {
         InstructionList write_il = new InstructionList();
 
-        if (has_serial_persistent_fields) {
+        if (has_jme_serial_persistent_fields) {
             return serialPersistentWrites(write_gen);
         }
 
@@ -845,11 +765,11 @@ class CodeGenerator implements RewriterConstants {
 
         if ((basicname != null)
                 || (isfinal
-                        && (SerializationInfo.hasIbisConstructor(field_class)
-                                || (SerializationInfo.isSerializable(field_class)
+                        && (JMESerializationInfo.hasJMEConstructor(field_class)
+                                || (JMESerializationInfo.isJMESerializable(field_class)
                                         && generator.forceGeneratedCalls())))) {
             read_il.append(new ALOAD(1));
-            read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+            read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_READ_KNOWN_TYPE_HEADER, Type.INT, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
             read_il.append(new ISTORE(2));
@@ -867,7 +787,7 @@ class CodeGenerator implements RewriterConstants {
                     read_il.append(new ALOAD(1));
 
                     read_il.append(factory.createInvoke(
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, callname, field_type,
+                            TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM, callname, field_type,
                             Type.NO_ARGS, Constants.INVOKEVIRTUAL));
                     read_il.append(
                             factory.createFieldAccess(
@@ -879,7 +799,7 @@ class CodeGenerator implements RewriterConstants {
                     read_il.append(new ALOAD(0));
                     read_il.append(new ALOAD(1));
                     read_il.append(factory.createInvoke(
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_INT, Type.INT,
+                            TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM, METHOD_READ_INT, Type.INT,
                             Type.NO_ARGS, Constants.INVOKEVIRTUAL));
                     read_il.append(new DUP());
                     read_il.append(new ISTORE(3));
@@ -897,7 +817,7 @@ class CodeGenerator implements RewriterConstants {
                                     field_type, Constants.GETFIELD));
 
                     read_il.append(factory.createInvoke(
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                            TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                             METHOD_ADD_OBJECT_TO_CYCLE_CHECK, Type.VOID,
                             new Type[] { Type.OBJECT },
                             Constants.INVOKEVIRTUAL));
@@ -909,7 +829,7 @@ class CodeGenerator implements RewriterConstants {
                     InstructionHandle loop_body_start
                             = read_il.append(new ALOAD(1));
                     read_il.append(
-                            factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                            factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                                     METHOD_READ_KNOWN_TYPE_HEADER, Type.INT,
                                     Type.NO_ARGS, Constants.INVOKEVIRTUAL));
                     read_il.append(new ISTORE(2));
@@ -950,7 +870,7 @@ class CodeGenerator implements RewriterConstants {
                     read_il.append(new ALOAD(1));
                     read_il.append(new ILOAD(2));
                     read_il.append(factory.createInvoke(
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                            TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                             METHOD_GET_OBJECT_FROM_CYCLE_CHECK, Type.OBJECT,
                             new Type[] { Type.INT },
                             Constants.INVOKEVIRTUAL));
@@ -994,7 +914,7 @@ class CodeGenerator implements RewriterConstants {
             read_il.append(new ALOAD(0));
             read_il.append(new ALOAD(1));
             read_il.append(new ILOAD(2));
-            read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+            read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_GET_OBJECT_FROM_CYCLE_CHECK, Type.OBJECT,
                     new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
 
@@ -1023,11 +943,11 @@ class CodeGenerator implements RewriterConstants {
             read_il.append(new ALOAD(0));
             read_il.append(new ALOAD(1));
             if (tpname.equals("")) {
-                read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                         METHOD_READ_OBJECT, Type.OBJECT, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
             } else {
-                read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                         METHOD_READ + tpname, tp, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
             }
@@ -1059,13 +979,13 @@ class CodeGenerator implements RewriterConstants {
                     Constants.INVOKEVIRTUAL));
 
             read_il.append(factory.createInvoke(
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                    TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_READ_FIELD_OBJECT, Type.VOID, new Type[] { Type.OBJECT,
                             Type.STRING, Type.STRING },
                     Constants.INVOKEVIRTUAL));
         } else {
             read_il.append(factory.createInvoke(
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_FIELD
+                    TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM, METHOD_READ_FIELD
                             + tpname, Type.VOID, new Type[] { Type.OBJECT,
                             Type.STRING }, Constants.INVOKEVIRTUAL));
         }
@@ -1075,11 +995,11 @@ class CodeGenerator implements RewriterConstants {
         read_il.append(new ALOAD(0));
         read_il.append(new ALOAD(1));
         if (tpname.equals("")) {
-            read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+            read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_READ_OBJECT, tp, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
         } else {
-            read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+            read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_READ + tpname, tp, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
         }
@@ -1219,7 +1139,7 @@ class CodeGenerator implements RewriterConstants {
             MethodGen read_gen) {
         InstructionList read_il = new InstructionList();
 
-        if (has_serial_persistent_fields) {
+        if (has_jme_serial_persistent_fields) {
             return serialPersistentReads(from_constructor, read_gen);
         }
 
@@ -1309,15 +1229,15 @@ class CodeGenerator implements RewriterConstants {
 
         String classfilename = name.substring(name.lastIndexOf('.') + 1)
                 + ".class";
-        ClassGen iogenGen = new ClassGen(name, TYPE_IBIS_IO_GENERATOR,
+        ClassGen iogenGen = new ClassGen(name, TYPE_IBIS_IO_JME_GENERATOR,
                 classfilename, Constants.ACC_FINAL | Constants.ACC_PUBLIC
                         | Constants.ACC_SUPER, null);
         InstructionFactory iogenFactory = new InstructionFactory(iogenGen);
 
         InstructionList il = new InstructionList();
 
-        if (!is_externalizable && super_is_serializable
-                && !super_has_ibis_constructor && !generator.forceGeneratedCalls()) {
+        if (!is_jme_externalizable && super_is_jme_serializable
+                && !super_has_jme_constructor && !generator.forceGeneratedCalls()) {
             /* This is a difficult case. We cannot call a constructor,
              * because this constructor would be obliged to call a
              * constructor for the super-class.
@@ -1334,7 +1254,7 @@ class CodeGenerator implements RewriterConstants {
             il.append(new ALOAD(1));
             int ind = iogenGen.getConstantPool().addString(classname);
             il.append(new LDC(ind));
-            il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+            il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_CREATE_UNINITIALIZED_OBJECT, Type.OBJECT,
                     new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
             il.append(iogenFactory.createCheckCast(class_type));
@@ -1345,7 +1265,7 @@ class CodeGenerator implements RewriterConstants {
             il.append(new ALOAD(2));
             ind = iogenGen.getConstantPool().addString(super_classname);
             il.append(new LDC(ind));
-            il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+            il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_READ_SERIALIZABLE_OBJECT, Type.VOID, new Type[] {
                             Type.OBJECT, Type.STRING },
                     Constants.INVOKEVIRTUAL));
@@ -1353,7 +1273,7 @@ class CodeGenerator implements RewriterConstants {
             /* Now, if the class has a readObject, call it. Otherwise,
              * read its fields, by calling generated_DefaultReadObject.
              */
-            if (SerializationInfo.hasReadObject(methods)) {
+            if (JMESerializationInfo.hasReadObject(methods)) {
                 il.append(new ALOAD(2));
                 il.append(new ALOAD(1));
                 il.append(iogenFactory.createInvoke(classname,
@@ -1387,7 +1307,7 @@ class CodeGenerator implements RewriterConstants {
 
         MethodGen method = new MethodGen(
                 Constants.ACC_FINAL | Constants.ACC_PUBLIC, Type.OBJECT,
-                ibis_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
+                jme_input_stream_arrtp, new String[] { VARIABLE_INPUT_STREAM },
                 METHOD_GENERATED_NEW_INSTANCE, name, il,
                 iogenGen.getConstantPool());
 
@@ -1399,7 +1319,7 @@ class CodeGenerator implements RewriterConstants {
 
         il = new InstructionList();
         il.append(new ALOAD(0));
-        il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_GENERATOR, METHOD_INIT,
+        il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_JME_GENERATOR, METHOD_INIT,
                 Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
         il.append(new RETURN());
 
@@ -1451,14 +1371,14 @@ class CodeGenerator implements RewriterConstants {
         MethodGen mgen = null;
         int index = -1;    
         InstructionList read_il = null;
-        if (is_externalizable || super_has_ibis_constructor
-                || !super_is_serializable || generator.forceGeneratedCalls()) {
+        if (is_jme_externalizable || super_has_jme_constructor
+                || !super_is_jme_serializable || generator.forceGeneratedCalls()) {
             read_il = new InstructionList();
-            if (is_externalizable) {
+            if (is_jme_externalizable) {
                 read_il.append(new ALOAD(0));
                 read_il.append(factory.createInvoke(classname, METHOD_INIT,
                         Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
-            } else if (!super_is_serializable) {
+            } else if (!super_is_jme_serializable) {
                 read_il.append(new ALOAD(0));
                 read_il.append(factory.createInvoke(super_classname,
                         METHOD_INIT, Type.VOID, Type.NO_ARGS,
@@ -1470,26 +1390,26 @@ class CodeGenerator implements RewriterConstants {
                         factory));
             }
 
-            if (is_externalizable || !super_is_serializable) {
+            if (is_jme_externalizable || !super_is_jme_serializable) {
                 read_il.append(new ALOAD(1));
                 read_il.append(new ALOAD(0));
                 read_il.append(
-                        factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                        factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                                 METHOD_ADD_OBJECT_TO_CYCLE_CHECK, Type.VOID,
                                 new Type[] { Type.OBJECT },
                                 Constants.INVOKEVIRTUAL));
             }
 
-            int read_cons_index = SerializationInfo.findMethod(methods,
+            int read_cons_index = JMESerializationInfo.findMethod(methods,
                     METHOD_INIT, 
-                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
+                    SIGNATURE_LIBIS_IO_JME_OBJECT_INPUT_STREAM_V);
             mgen = new MethodGen(methods[read_cons_index], classname,
                     constantpool);
             index = read_cons_index;
-        } else if (SerializationInfo.hasReadObject(methods)) {
-            int read_wrapper_index = SerializationInfo.findMethod(methods,
+        } else if (JMESerializationInfo.hasReadObject(methods)) {
+            int read_wrapper_index = JMESerializationInfo.findMethod(methods,
                     METHOD_$READ_OBJECT_WRAPPER$, 
-                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
+                    SIGNATURE_LIBIS_IO_JME_OBJECT_INPUT_STREAM_V);
             mgen = new MethodGen(methods[read_wrapper_index], classname,
                     constantpool);
             read_il = new InstructionList();
@@ -1502,12 +1422,12 @@ class CodeGenerator implements RewriterConstants {
          */
 
         if (read_il != null) {
-            if (is_externalizable || SerializationInfo.hasReadObject(methods)) {
+            if (is_jme_externalizable || JMESerializationInfo.hasReadObject(methods)) {
                 /* First, get and set IbisSerializationInputStream's idea of the current object. */
                 read_il.append(new ALOAD(1));
                 read_il.append(new ALOAD(0));
                 read_il.append(new SIPUSH((short) dpth));
-                read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                         METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
                                 Type.OBJECT, Type.INT },
                         Constants.INVOKEVIRTUAL));
@@ -1515,12 +1435,12 @@ class CodeGenerator implements RewriterConstants {
                 read_il.append(new ALOAD(0));
                 read_il.append(new ALOAD(1));
                 read_il.append(factory.createInvoke(
-                            TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                            TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                             METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
                             sun_input_stream,
                             Type.NO_ARGS,
                             Constants.INVOKEVIRTUAL));
-                if (is_externalizable) {
+                if (is_jme_externalizable) {
                     /* Invoke readExternal */
                     read_il.append(factory.createInvoke(classname,
                             METHOD_READ_EXTERNAL, Type.VOID,
@@ -1557,29 +1477,29 @@ class CodeGenerator implements RewriterConstants {
 
 	private void fillInGeneratedWriteObjectMethod(int dpth) {
 		/* Now, produce generated_WriteObject. */
-        int write_method_index = SerializationInfo.findMethod(methods,
-                METHOD_GENERATED_WRITE_OBJECT, 
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V);
+        int write_method_index = JMESerializationInfo.findMethod(methods,
+                METHOD_GENERATED_JME_WRITE_OBJECT, 
+                SIGNATURE_LIBIS_IO_JME_OBJECT_OUTPUT_STREAM_V);
         InstructionList write_il = new InstructionList();
         MethodGen write_gen = new MethodGen(methods[write_method_index], classname,
                 constantpool);
 
         /* write the superclass if neccecary */
-        if (is_externalizable) {
+        if (is_jme_externalizable) {
             /* Nothing to be done for the superclass. */
         } else if (super_is_ibis_serializable
-                || (generator.forceGeneratedCalls() && super_is_serializable)) {
+                || (generator.forceGeneratedCalls() && super_is_jme_serializable)) {
             write_il.append(new ALOAD(0));
             write_il.append(new ALOAD(1));
             write_il.append(createGeneratedWriteObjectInvocation(
                     super_classname, Constants.INVOKESPECIAL));
 
-        } else if (super_is_serializable) {
+        } else if (super_is_jme_serializable) {
             int ind = constantpool.addString(super_classname);
             write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(0));
             write_il.append(new LDC(ind));
-            write_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+            write_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                     METHOD_WRITE_SERIALIZABLE_OBJECT, Type.VOID, new Type[] {
                             Type.OBJECT, Type.STRING },
                     Constants.INVOKEVIRTUAL));
@@ -1590,14 +1510,14 @@ class CodeGenerator implements RewriterConstants {
          * The read constructor should either call readObject, or call
          * generated_DefaultReadObject.
          */
-        if (is_externalizable || SerializationInfo.hasWriteObject(methods)) {
+        if (is_jme_externalizable || JMESerializationInfo.hasWriteObject(methods)) {
             /* First, get and set IbisSerializationOutputStream's idea of
              * the current object.
              */
             write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(0));
             write_il.append(new SIPUSH((short) dpth));
-            write_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+            write_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                     METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
                             Type.OBJECT, Type.INT },
                     Constants.INVOKEVIRTUAL));
@@ -1605,12 +1525,12 @@ class CodeGenerator implements RewriterConstants {
             write_il.append(new ALOAD(0));
             write_il.append(new ALOAD(1));
             write_il.append(factory.createInvoke(
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                        TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                         METHOD_GET_JAVA_OBJECT_OUTPUT_STREAM,
                         sun_output_stream,
                         Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
-            if (is_externalizable) {
+            if (is_jme_externalizable) {
                 /* Invoke writeExternal */
                 write_il.append(
                         factory.createInvoke(classname, METHOD_WRITE_EXTERNAL,
@@ -1619,12 +1539,13 @@ class CodeGenerator implements RewriterConstants {
                                 Constants.INVOKEVIRTUAL));
             } else {
                 /* Invoke writeObject. */
-                write_il.append(createWriteObjectInvocation());
+            	/* TODO: Create a throws NotSerializable here */
+                /* write_il.append(createWriteObjectInvocation()); */
             }
 
             /* And then, restore IbisSerializationOutputStream's idea of the current object. */
             write_il.append(new ALOAD(1));
-            write_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+            write_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                     METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
         } else {
@@ -1655,10 +1576,10 @@ class CodeGenerator implements RewriterConstants {
          * }
          */
 
-        int default_write_method_index = SerializationInfo.findMethod(
+        int default_write_method_index = JMESerializationInfo.findMethod(
                 methods,
                 METHOD_GENERATED_DEFAULT_WRITE_OBJECT, 
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V);
+                SIGNATURE_LIBIS_IO_JME_OBJECT_OUTPUT_STREAM_I_V);
         MethodGen write_gen = new MethodGen(
                 methods[default_write_method_index], classname,
                 constantpool);
@@ -1672,7 +1593,7 @@ class CodeGenerator implements RewriterConstants {
         write_il.append(ifcmpne);
         write_il.append(generateDefaultWrites(write_gen));
         write_il.append(new GOTO(end));
-        if (super_is_ibis_serializable || super_is_serializable) {
+        if (super_is_ibis_serializable || super_is_jme_serializable) {
             InstructionHandle i = write_il.append(new ILOAD(2));
             ifcmpne.setTarget(i);
             write_il.append(new SIPUSH((short) dpth));
@@ -1691,7 +1612,7 @@ class CodeGenerator implements RewriterConstants {
                 write_il.append(new ALOAD(0));
                 write_il.append(new ILOAD(2));
                 write_il.append(factory.createInvoke(
-                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                        TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                         METHOD_DEFAULT_WRITE_SERIALIZABLE_OBJECT, Type.VOID,
                         new Type[] { Type.OBJECT, Type.INT },
                         Constants.INVOKEVIRTUAL));
@@ -1712,10 +1633,10 @@ class CodeGenerator implements RewriterConstants {
 	private void fillInGeneratedDefaultReadObjectMethod(int dpth) {
 		InstructionHandle end;
 		IF_ICMPNE ifcmpne;
-		int default_read_method_index = SerializationInfo.findMethod(
+		int default_read_method_index = JMESerializationInfo.findMethod(
                 methods,
                 METHOD_GENERATED_DEFAULT_READ_OBJECT, 
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V);
+                SIGNATURE_LIBIS_IO_JME_OBJECT_INPUT_STREAM_I_V);
         MethodGen read_gen = new MethodGen(
                 methods[default_read_method_index], classname,
                 constantpool);
@@ -1730,7 +1651,7 @@ class CodeGenerator implements RewriterConstants {
         read_il.append(generateDefaultReads(false, read_gen));
         read_il.append(new GOTO(end));
 
-        if (super_is_ibis_serializable || super_is_serializable) {
+        if (super_is_ibis_serializable || super_is_jme_serializable) {
             InstructionHandle i = read_il.append(new ILOAD(2));
             ifcmpne.setTarget(i);
             read_il.append(new SIPUSH((short) dpth));
@@ -1747,7 +1668,7 @@ class CodeGenerator implements RewriterConstants {
                 read_il.append(new ALOAD(1));
                 read_il.append(new ALOAD(0));
                 read_il.append(new ILOAD(2));
-                read_il.append(factory.createInvoke(TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                         METHOD_DEFAULT_READ_SERIALIZABLE_OBJECT, Type.VOID,
                         new Type[] { Type.OBJECT, Type.INT },
                         Constants.INVOKEVIRTUAL));

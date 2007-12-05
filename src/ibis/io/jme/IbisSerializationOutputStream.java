@@ -1190,7 +1190,7 @@ public class IbisSerializationOutputStream
                     logger.debug("generated_DefaultWriteObject, class = "
                             + clazz.getName() + ", level = " + current_level);
                 }
-                ((Serializable) ref).generated_DefaultWriteObject(ibisStream,
+                ((JMESerializable) ref).generated_DefaultWriteObject(ibisStream,
                         current_level);
             } else if (ref instanceof java.io.Serializable) {
                 /* 

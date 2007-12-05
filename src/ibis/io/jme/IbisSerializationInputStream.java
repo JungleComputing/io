@@ -1958,7 +1958,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     logger.debug("generated_DefaultReadObject, class = " + type
                             + ", level = " + current_level);
                 }
-                ((ibis.io.jme.Serializable) ref).generated_DefaultReadObject(ibisStream,
+                ((JMESerializable) ref).generated_DefaultReadObject(ibisStream,
                         current_level);
             } else if (t.isSerializable) {
 

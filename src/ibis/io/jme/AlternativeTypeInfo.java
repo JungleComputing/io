@@ -52,7 +52,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
-            ((Serializable) ref).generated_WriteObject(out);
+            ((JMESerializable) ref).generated_WriteObject(out);
         }
     }
 

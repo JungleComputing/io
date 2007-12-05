@@ -13,17 +13,17 @@ import org.apache.bcel.generic.Type;
  *
  */
 public interface RewriterConstants {
-	static final String TYPE_IBIS_INPUT_STREAM = "ibis.io.IbisSerializationInputStream";
+	static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM = "ibis.io.IbisSerializationInputStream";
 	
 	static final ObjectType ibis_input_stream = new ObjectType(
-			TYPE_IBIS_INPUT_STREAM);
+			TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM);
 	
 	static final Type[] ibis_input_stream_arrtp = new Type[] { ibis_input_stream };
 
-	static final String TYPE_IBIS_OUTPUT_STREAM = "ibis.io.IbisSerializationOutputStream";
+	static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM = "ibis.io.IbisSerializationOutputStream";
 	
 	static final ObjectType ibis_output_stream = new ObjectType(
-			TYPE_IBIS_OUTPUT_STREAM);
+			TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM);
 	
 	static final Type[] ibis_output_stream_arrtp = new Type[] { ibis_output_stream };
 	
@@ -214,7 +214,7 @@ public interface RewriterConstants {
 	static final String METHOD_WRITE_SHORT = "writeShort";
 
 	static final String METHOD_WRITE_STRING = "writeString";
-
+		
 	static final String SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V = "(Libis/io/IbisSerializationInputStream;I)V";
 
 	static final String SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V = "(Libis/io/IbisSerializationInputStream;)V";
@@ -241,10 +241,6 @@ public interface RewriterConstants {
 
 	static final String TYPE_IBIS_IO_GENERATOR = "ibis.io.Generator";
 
-	static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM = "ibis.io.IbisSerializationInputStream";
-
-	static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM = "ibis.io.IbisSerializationOutputStream";
-
 	static final String TYPE_IBIS_IO_REPLACER = "ibis.io.Replacer";
 
 	static final String TYPE_IBIS_IO_SERIALIZABLE = "ibis.io.Serializable";
@@ -255,6 +251,8 @@ public interface RewriterConstants {
 
 	static final String TYPE_JAVA_IO_IOEXCEPTION = "java.io.IOException";
 
+	static final String TYPE_JAVA_IO_OBJECT_INPUT = "java.io.ObjectInput";
+	
 	static final String TYPE_JAVA_IO_OBJECT_OUTPUT = "java.io.ObjectOutput";
 
 	static final String TYPE_JAVA_IO_OBJECT_STREAM_FIELD = "java.io.ObjectStreamField";
@@ -276,18 +274,18 @@ public interface RewriterConstants {
 	static final String TYPE_JAVA_LANG_STRING = "java.lang.String";
 
 	static final String TYPE_JAVA_LANG_STRING_BUFFER = "java.lang.StringBuffer";
-
+	
 	static final String TYPE_LJAVA_IO_OBJECT_STREAM_FIELD = "[Ljava/io/ObjectStreamField;";
 
 	static final String TYPE_LONG = "Long";
 
 	static final String TYPE_SHORT = "Short";
 
-	static final String VARIABLE_IS = "is";
+	static final String VARIABLE_INPUT_STREAM = "is";
 
 	static final String VARIABLE_LEVEL = "lvl";
 
-	static final String VARIABLE_OS = "os";
+	static final String VARIABLE_OUTPUT_STREAM = "os";
 
 	static final String VARIABLE_REPLACER = "replacer";
 
