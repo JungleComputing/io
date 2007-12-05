@@ -64,40 +64,9 @@ import org.apache.bcel.generic.Type;
 /* TODO: docs.
  */
 
-public class IOGenerator extends ibis.compile.IbiscComponent {
-    private static final String ibis_input_stream_name
-            = "ibis.io.IbisSerializationInputStream";
+public class IOGenerator extends ibis.compile.IbiscComponent implements RewriterConstants {
 
-    private static final String ibis_output_stream_name
-            = "ibis.io.IbisSerializationOutputStream";
-
-    private static final String sun_input_stream_name
-            = "java.io.ObjectInputStream";
-
-    private static final String sun_output_stream_name
-            = "java.io.ObjectOutputStream";
-
-    static final ObjectType ibis_input_stream = new ObjectType(
-            ibis_input_stream_name);
-
-    static final ObjectType ibis_output_stream = new ObjectType(
-            ibis_output_stream_name);
-
-    static final ObjectType sun_input_stream = new ObjectType(
-            sun_input_stream_name);
-
-    static final ObjectType sun_output_stream = new ObjectType(
-            sun_output_stream_name);
-
-    static final Type[] ibis_input_stream_arrtp
-            = new Type[] { ibis_input_stream };
-
-    static final Type[] ibis_output_stream_arrtp
-            = new Type[] { ibis_output_stream };
-
-    static final Type java_lang_class_type = Type.getType("Ljava/lang/Class;");
-
-    static HashMap<String, Long> serialversionids = new HashMap<String, Long>();
+	static HashMap<String, Long> serialversionids = new HashMap<String, Long>();
 
     private static class FieldComparator implements Comparator<Field> {
         public int compare(Field f1, Field f2) {
@@ -107,7 +76,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
     static FieldComparator fieldComparator = new FieldComparator();
 
-    private static class SerializationInfo {
+    class SerializationInfo {
 
         String write_name;
 
@@ -133,7 +102,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
     }
 
     private class CodeGenerator {
-        JavaClass clazz;
+
+		JavaClass clazz;
 
         ClassGen gen;
 
@@ -253,10 +223,10 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
                 // 5. If a class initializer exists, write out the following:
                 for (int i = 0; i < cMethods.length; i++) {
-                    if (cMethods[i].getName().equals("<clinit>")) {
+                    if (cMethods[i].getName().equals(METHOD_CLINIT)) {
                         // 5.1. The name of the method, <clinit>, in UTF
                         //      encoding.
-                        dout.writeUTF("<clinit>");
+                        dout.writeUTF(METHOD_CLINIT);
                         // 5.2. The modifier of the method,
                         //      java.lang.reflect.Modifier.STATIC, written as
                         //      a 32-bit integer.
@@ -284,12 +254,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 // 6. For each non-private constructor sorted by method name
                 //    and signature:
                 for (int i = 0; i < cMethods.length; i++) {
-                    if (cMethods[i].getName().equals("<init>")) {
+                    if (cMethods[i].getName().equals(METHOD_INIT)) {
                         int mods = cMethods[i].getModifiers();
                         if ((mods & Constants.ACC_PRIVATE) == 0) {
                             // 6.1. The name of the method, <init>, in UTF
                             //      encoding.
-                            dout.writeUTF("<init>");
+                            dout.writeUTF(METHOD_INIT);
                             // 6.2. The modifiers of the method written as a
                             //      32-bit integer.
                             dout.writeInt(mods);
@@ -304,8 +274,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 // 7. For each non-private method sorted by method name and
                 //    signature:
                 for (int i = 0; i < cMethods.length; i++) {
-                    if (!cMethods[i].getName().equals("<init>")
-                            && !cMethods[i].getName().equals("<clinit>")) {
+                    if (!cMethods[i].getName().equals(METHOD_INIT)
+                            && !cMethods[i].getName().equals(METHOD_CLINIT)) {
                         int mods = cMethods[i].getModifiers();
                         if ((mods & Constants.ACC_PRIVATE) == 0) {
                             // 7.1. The name of the method in UTF encoding.
@@ -349,7 +319,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
         private void versionUID() {
             for (int i = 0; i < fields.length; i++) {
                 Field f = fields[i];
-                if (f.getName().equals("serialVersionUID") && f.isFinal()
+                if (f.getName().equals(FIELD_SERIAL_VERSION_UID) && f.isFinal()
                         && f.isStatic()) {
                     /* Already present. Just return. */
                     return;
@@ -368,7 +338,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             if (uid != 0) {
                 FieldGen f = new FieldGen(Constants.ACC_PRIVATE
                         | Constants.ACC_FINAL | Constants.ACC_STATIC,
-                        Type.LONG, "serialVersionUID", constantpool);
+                        Type.LONG, FIELD_SERIAL_VERSION_UID, constantpool);
                 f.setInitValue(uid);
                 gen.addField(f.getField());
                 fields = gen.getFields();
@@ -378,12 +348,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
         private boolean hasSerialPersistentFields() {
             for (int i = 0; i < fields.length; i++) {
                 Field f = fields[i];
-                if (f.getName().equals("serialPersistentFields")
+                if (f.getName().equals(FIELD_SERIAL_PERSISTENT_FIELDS)
                         && f.isFinal()
                         && f.isStatic()
                         && f.isPrivate()
                         && f.getSignature().equals(
-                                "[Ljava/io/ObjectStreamField;")) {
+                                TYPE_LJAVA_IO_OBJECT_STREAM_FIELD)) {
                     return true;
                 }
             }
@@ -410,12 +380,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
         }
 
         private boolean hasWriteObject() {
-            return findMethod("writeObject", "(Ljava/io/ObjectOutputStream;)V")
+            return findMethod(METHOD_WRITE_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_OUTPUT_STREAM_V)
                     != -1;
         }
 
         private boolean hasReadObject() {
-            return findMethod("readObject", "(Ljava/io/ObjectInputStream;)V")
+            return findMethod(METHOD_READ_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_INPUT_STREAM_V)
                     != -1;
         }
 
@@ -423,9 +393,9 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             Method[] clMethods = cl.getMethods();
 
             for (int i = 0; i < clMethods.length; i++) {
-                if (clMethods[i].getName().equals("<init>")
+                if (clMethods[i].getName().equals(METHOD_INIT)
                         && clMethods[i].getSignature().equals(
-                                "(Libis/io/IbisSerializationInputStream;)V")) {
+                                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V)) {
                     return true;
                 }
             }
@@ -434,32 +404,32 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
         private Instruction createGeneratedWriteObjectInvocation(String name,
                 short invmode) {
-            return factory.createInvoke(name, "generated_WriteObject",
+            return factory.createInvoke(name, METHOD_GENERATED_WRITE_OBJECT,
                     Type.VOID, ibis_output_stream_arrtp, invmode);
         }
 
         private Instruction createGeneratedDefaultReadObjectInvocation(
                 String name, InstructionFactory fac, short invmode) {
-            return fac.createInvoke(name, "generated_DefaultReadObject",
+            return fac.createInvoke(name, METHOD_GENERATED_DEFAULT_READ_OBJECT,
                     Type.VOID, new Type[] { ibis_input_stream, Type.INT },
                     invmode);
         }
 
         private Instruction createInitInvocation(String name,
                 InstructionFactory f) {
-            return f.createInvoke(name, "<init>", Type.VOID,
+            return f.createInvoke(name, METHOD_INIT, Type.VOID,
                     ibis_input_stream_arrtp, Constants.INVOKESPECIAL);
         }
 
         private Instruction createGeneratedDefaultWriteObjectInvocation(
                 String name) {
-            return factory.createInvoke(name, "generated_DefaultWriteObject",
+            return factory.createInvoke(name, METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
                     Type.VOID, new Type[] { ibis_output_stream, Type.INT },
                     Constants.INVOKESPECIAL);
         }
 
         private Instruction createWriteObjectInvocation() {
-            return factory.createInvoke(classname, "writeObject", Type.VOID,
+            return factory.createInvoke(classname, METHOD_WRITE_OBJECT, Type.VOID,
                     new Type[] { sun_output_stream }, Constants.INVOKESPECIAL);
         }
 
@@ -479,11 +449,11 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         + classname);
                 System.out.println("    " + classname
                         + " implements java.io.Serializable -> adding "
-                        + "ibis.io.Serializable");
+                        + TYPE_IBIS_IO_SERIALIZABLE);
             }
 
             /* add the ibis.io.Serializable interface to the class */
-            gen.addInterface("ibis.io.Serializable");
+            gen.addInterface(TYPE_IBIS_IO_SERIALIZABLE);
 
             /* Construct a write method */
             InstructionList il = new InstructionList();
@@ -493,10 +463,10 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     | (gen.isFinal() ? Constants.ACC_FINAL : 0);
 
             MethodGen write_method = new MethodGen(flags, Type.VOID,
-                    ibis_output_stream_arrtp, new String[] { "os" },
-                    "generated_WriteObject", classname, il, constantpool);
+                    ibis_output_stream_arrtp, new String[] { VARIABLE_OS },
+                    METHOD_GENERATED_WRITE_OBJECT, classname, il, constantpool);
 
-            write_method.addException("java.io.IOException");
+            write_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
             gen.addMethod(write_method.getMethod());
 
             /* ... and a default_write_method */
@@ -505,10 +475,11 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
             MethodGen default_write_method = new MethodGen(flags, Type.VOID,
                     new Type[] { ibis_output_stream, Type.INT }, new String[] {
-                            "os", "lvl" }, "generated_DefaultWriteObject",
+                            VARIABLE_OS, VARIABLE_LEVEL }, 
+                            METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
                     classname, il, constantpool);
 
-            default_write_method.addException("java.io.IOException");
+            default_write_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
             gen.addMethod(default_write_method.getMethod());
 
             /* ... and a default_read_method */
@@ -517,12 +488,13 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
             MethodGen default_read_method = new MethodGen(flags, Type.VOID,
                     new Type[] { ibis_input_stream, Type.INT }, new String[] {
-                            "os", "lvl" }, "generated_DefaultReadObject",
+                            VARIABLE_OS, VARIABLE_LEVEL }, 
+                            METHOD_GENERATED_DEFAULT_READ_OBJECT,
                     classname, il, constantpool);
 
-            default_read_method.addException("java.io.IOException");
+            default_read_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
             default_read_method.addException(
-                    "java.lang.ClassNotFoundException");
+                    TYPE_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION);
             gen.addMethod(default_read_method.getMethod());
 
             /* Construct a read-of-the-stream constructor, but only when we
@@ -535,21 +507,21 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
                 MethodGen read_cons = new MethodGen(Constants.ACC_PUBLIC,
                         Type.VOID, ibis_input_stream_arrtp,
-                        new String[] { "is" }, "<init>", classname, il,
+                        new String[] { VARIABLE_IS }, METHOD_INIT, classname, il,
                         constantpool);
-                read_cons.addException("java.io.IOException");
-                read_cons.addException("java.lang.ClassNotFoundException");
+                read_cons.addException(TYPE_JAVA_IO_IOEXCEPTION);
+                read_cons.addException(TYPE_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION);
                 gen.addMethod(read_cons.getMethod());
             } else if (hasReadObject()) {
                 il = new InstructionList();
                 il.append(new RETURN());
                 MethodGen readobjectWrapper = new MethodGen(
                         Constants.ACC_PUBLIC, Type.VOID,
-                        ibis_input_stream_arrtp, new String[] { "is" },
-                        "$readObjectWrapper$", classname, il, constantpool);
-                readobjectWrapper.addException("java.io.IOException");
+                        ibis_input_stream_arrtp, new String[] { VARIABLE_IS },
+                        METHOD_$READ_OBJECT_WRAPPER$, classname, il, constantpool);
+                readobjectWrapper.addException(TYPE_JAVA_IO_IOEXCEPTION);
                 readobjectWrapper.addException(
-                        "java.lang.ClassNotFoundException");
+                        TYPE_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION);
                 gen.addMethod(readobjectWrapper.getMethod());
             }
 
@@ -583,7 +555,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             temp.append(new ALOAD(0));
             temp.append(factory.createFieldAccess(classname, field.getName(),
                     t, Constants.GETFIELD));
-            temp.append(factory.createInvoke(ibis_output_stream_name,
+            temp.append(factory.createInvoke(TYPE_IBIS_OUTPUT_STREAM,
                     info.write_name, Type.VOID, info.param_tp_arr,
                     Constants.INVOKEVIRTUAL));
 
@@ -606,7 +578,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             if (from_constructor || !field.isFinal()) {
                 temp.append(new ALOAD(0));
                 temp.append(new ALOAD(1));
-                temp.append(factory.createInvoke(ibis_input_stream_name,
+                temp.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
                         info.read_name, info.tp, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
 
@@ -627,7 +599,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     int ind2 = constantpool.addString(field_sig);
                     temp.append(new LDC(ind2));
                 }
-                temp.append(factory.createInvoke(ibis_input_stream_name,
+                temp.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
                                     info.final_read_name, Type.VOID,
                                     info.primitive ? new Type[] {
                                             Type.OBJECT, Type.STRING,
@@ -642,7 +614,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
         }
 
         private String writeCallName(String name) {
-            return "writeArray" + name.substring(0, 1).toUpperCase()
+            return METHOD_WRITE_ARRAY + name.substring(0, 1).toUpperCase()
                     + name.substring(1);
         }
 
@@ -691,8 +663,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 write_il.append(new ACONST_NULL());
                 write_il.append(new ALOAD(1));
                 write_il.append(factory.createFieldAccess(
-                            ibis_output_stream_name, "replacer", 
-                            new ObjectType("ibis.io.Replacer"),
+                            TYPE_IBIS_OUTPUT_STREAM, VARIABLE_REPLACER, 
+                            new ObjectType(TYPE_IBIS_IO_REPLACER),
                             Constants.GETFIELD));
                 IF_ACMPEQ replacertest = new IF_ACMPEQ(null);
                 write_il.append(replacertest);
@@ -707,16 +679,16 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         field.getName(), field_type, Constants.GETFIELD));
                 if (basicname != null) {
                     write_il.append(factory.createFieldAccess(
-                            "ibis.io.Constants",
+                            TYPE_IBIS_IO_CONSTANTS,
                             "TYPE_" + basicname.toUpperCase(), Type.INT,
                             Constants.GETSTATIC));
                     write_il.append(factory.createInvoke(
-                            ibis_output_stream_name, "writeKnownArrayHeader",
+                            TYPE_IBIS_OUTPUT_STREAM, METHOD_WRITE_KNOWN_ARRAY_HEADER,
                             Type.INT, new Type[] { Type.OBJECT, Type.INT },
                             Constants.INVOKEVIRTUAL));
                 } else {
                     write_il.append(factory.createInvoke(
-                            ibis_output_stream_name, "writeKnownObjectHeader",
+                            TYPE_IBIS_OUTPUT_STREAM, METHOD_WRITE_KNOWN_OBJECT_HEADER,
                             Type.INT, new Type[] { Type.OBJECT },
                             Constants.INVOKEVIRTUAL));
                 }
@@ -738,8 +710,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     write_il.append(new ISTORE(4));
                     write_il.append(
                             factory.createInvoke(
-                                    "ibis.io.IbisSerializationOutputStream",
-                                    "writeInt",
+                                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                                    METHOD_WRITE_INT,
                                     Type.VOID, new Type[] { Type.INT },
                                     Constants.INVOKEVIRTUAL));
                     if (basicname != null) {
@@ -753,7 +725,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         write_il.append(new ILOAD(4));
                         write_il.append(
                                 factory.createInvoke(
-                                    "ibis.io.IbisSerializationOutputStream",
+                                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
                                     writeCallName(basicname), Type.VOID,
                                     new Type[] { field_type, Type.INT,
                                             Type.INT },
@@ -776,8 +748,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
                         write_il.append(
                                 factory.createInvoke(
-                                        ibis_output_stream_name,
-                                        "writeKnownObjectHeader", Type.INT,
+                                        TYPE_IBIS_OUTPUT_STREAM,
+                                        METHOD_WRITE_KNOWN_OBJECT_HEADER, Type.INT,
                                         new Type[] { Type.OBJECT },
                                         Constants.INVOKEVIRTUAL));
                         write_il.append(new ISTORE(2));
@@ -830,12 +802,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
         private InstructionList serialPersistentWrites(MethodGen write_gen) {
             Instruction persistent_field_access = factory.createFieldAccess(
-                    classname, "serialPersistentFields", new ArrayType(
-                            new ObjectType("java.io.ObjectStreamField"), 1),
+                    classname, FIELD_SERIAL_PERSISTENT_FIELDS, new ArrayType(
+                            new ObjectType(TYPE_JAVA_IO_OBJECT_STREAM_FIELD), 1),
                     Constants.GETSTATIC);
             InstructionList write_il = new InstructionList();
-            int[] case_values = new int[] { 'B', 'C', 'D', 'F', 'I', 'J', 'S',
-                    'Z' };
+            int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT,
+                    CASE_OBJECT };
             InstructionHandle[] case_handles
                     = new InstructionHandle[case_values.length];
             GOTO[] gotos = new GOTO[case_values.length + 1];
@@ -855,37 +827,37 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             write_il.append(new ILOAD(2));
             write_il.append(new AALOAD());
             write_il.append(
-                    factory.createInvoke("java.io.ObjectStreamField",
-                            "getName", Type.STRING, Type.NO_ARGS,
+                    factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
+                            METHOD_GET_NAME, Type.STRING, Type.NO_ARGS,
                             Constants.INVOKEVIRTUAL));
             write_il.append(new ASTORE(3));
 
             InstructionHandle begin_try = write_il.append(new PUSH(
                     constantpool, classname));
-            write_il.append(factory.createInvoke("java.lang.Class", "forName",
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS, METHOD_FOR_NAME,
                     java_lang_class_type, new Type[] { Type.STRING },
                     Constants.INVOKESTATIC));
             write_il.append(new ALOAD(3));
-            write_il.append(factory.createInvoke("java.lang.Class", "getField",
-                    new ObjectType("java.lang.reflect.Field"),
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS, METHOD_GET_FIELD,
+                    new ObjectType(TYPE_JAVA_LANG_REFLECT_FIELD),
                     new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
             write_il.append(new ASTORE(4));
 
             write_il.append(persistent_field_access);
             write_il.append(new ILOAD(2));
             write_il.append(new AALOAD());
-            write_il.append(factory.createInvoke("java.io.ObjectStreamField",
-                    "getTypeCode", Type.CHAR, Type.NO_ARGS,
+            write_il.append(factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
+                    METHOD_GET_TYPE_CODE, Type.CHAR, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
 
             case_handles[0] = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "getBoolean", Type.BOOLEAN, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET_BOOLEAN, Type.BOOLEAN, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(factory.createInvoke(
-                    "ibis.io.IbisSerializationOutputStream", "writeBoolean",
+                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_BOOLEAN,
                     Type.VOID, new Type[] { Type.BOOLEAN },
                     Constants.INVOKEVIRTUAL));
             write_il.append(gotos[0]);
@@ -893,24 +865,24 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             case_handles[1] = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "getChar", Type.CHAR, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET_CHAR, Type.CHAR, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(
                     factory.createInvoke(
-                            "ibis.io.IbisSerializationOutputStream",
-                            "writeChar", Type.VOID, new Type[] { Type.INT },
+                            TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                            METHOD_WRITE_CHAR, Type.VOID, new Type[] { Type.INT },
                             Constants.INVOKEVIRTUAL));
             write_il.append(gotos[1]);
 
             case_handles[2] = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "getDouble", Type.DOUBLE, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET_DOUBLE, Type.DOUBLE, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(factory.createInvoke(
-                    "ibis.io.IbisSerializationOutputStream", "writeDouble",
+                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_DOUBLE,
                     Type.VOID, new Type[] { Type.DOUBLE },
                     Constants.INVOKEVIRTUAL));
             write_il.append(gotos[2]);
@@ -918,11 +890,11 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             case_handles[3] = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "getFloat", Type.FLOAT, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET_FLOAT, Type.FLOAT, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(factory.createInvoke(
-                    "ibis.io.IbisSerializationOutputStream", "writeFloat",
+                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_FLOAT,
                     Type.VOID, new Type[] { Type.FLOAT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(gotos[3]);
@@ -930,24 +902,24 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             case_handles[4] = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "getInt", Type.INT, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET_INT, Type.INT, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(
                     factory.createInvoke(
-                            "ibis.io.IbisSerializationOutputStream",
-                            "writeInt", Type.VOID, new Type[] { Type.INT },
+                            TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                            METHOD_WRITE_INT, Type.VOID, new Type[] { Type.INT },
                             Constants.INVOKEVIRTUAL));
             write_il.append(gotos[4]);
 
             case_handles[5] = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "getLong", Type.LONG, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET_LONG, Type.LONG, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(factory.createInvoke(
-                    "ibis.io.IbisSerializationOutputStream", "writeLong",
+                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_LONG,
                     Type.VOID, new Type[] { Type.LONG },
                     Constants.INVOKEVIRTUAL));
             write_il.append(gotos[5]);
@@ -955,12 +927,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             case_handles[6] = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "getShort", Type.SHORT, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET_SHORT, Type.SHORT, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(
                     factory.createInvoke(
-                        "ibis.io.IbisSerializationOutputStream", "writeShort",
+                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_SHORT,
                         Type.VOID, new Type[] { Type.INT },
                         Constants.INVOKEVIRTUAL));
             write_il.append(gotos[6]);
@@ -968,11 +940,11 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             case_handles[7] = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "getBoolean", Type.BOOLEAN, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET_BOOLEAN, Type.BOOLEAN, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(factory.createInvoke(
-                    "ibis.io.IbisSerializationOutputStream", "writeBoolean",
+                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_BOOLEAN,
                     Type.VOID, new Type[] { Type.BOOLEAN },
                     Constants.INVOKEVIRTUAL));
             write_il.append(gotos[7]);
@@ -980,12 +952,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             InstructionHandle default_handle = write_il.append(new ALOAD(1));
             write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
-            write_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "get", Type.OBJECT, new Type[] { Type.OBJECT },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_GET, Type.OBJECT, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
             write_il.append(factory.createInvoke(
-                    "ibis.io.IbisSerializationOutputStream",
-                    "writeObject", Type.VOID,
+                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM,
+                    METHOD_WRITE_OBJECT, Type.VOID,
                     new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
             InstructionHandle end_try = write_il.append(gotos[8]);
 
@@ -993,27 +965,27 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     case_handles, default_handle));
 
             InstructionHandle handler = write_il.append(new ASTORE(6));
-            write_il.append(factory.createNew("java.io.IOException"));
+            write_il.append(factory.createNew(TYPE_JAVA_IO_IOEXCEPTION));
             write_il.append(new DUP());
-            write_il.append(factory.createNew("java.lang.StringBuffer"));
+            write_il.append(factory.createNew(TYPE_JAVA_LANG_STRING_BUFFER));
             write_il.append(new DUP());
             write_il.append(
-                    factory.createInvoke("java.lang.StringBuffer",
-                            "<init>", Type.VOID, Type.NO_ARGS,
+                    factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                            METHOD_INIT, Type.VOID, Type.NO_ARGS,
                             Constants.INVOKESPECIAL));
             write_il.append(new PUSH(constantpool, "Could not write field "));
-            write_il.append(factory.createInvoke("java.lang.StringBuffer",
-                    "append", Type.STRINGBUFFER, new Type[] { Type.STRING },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                    METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
                     Constants.INVOKEVIRTUAL));
             write_il.append(new ALOAD(3));
-            write_il.append(factory.createInvoke("java.lang.StringBuffer",
-                    "append", Type.STRINGBUFFER, new Type[] { Type.STRING },
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                    METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
                     Constants.INVOKEVIRTUAL));
-            write_il.append(factory.createInvoke("java.lang.StringBuffer",
-                    "toString", Type.STRING, Type.NO_ARGS,
+            write_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                    METHOD_TO_STRING, Type.STRING, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
-            write_il.append(factory.createInvoke("java.io.IOException",
-                    "<init>", Type.VOID, new Type[] { Type.STRING },
+            write_il.append(factory.createInvoke(TYPE_JAVA_IO_IOEXCEPTION,
+                    METHOD_INIT, Type.VOID, new Type[] { Type.STRING },
                     Constants.INVOKESPECIAL));
             write_il.append(new ATHROW());
 
@@ -1029,7 +1001,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             write_il.append(new IF_ICMPLT(loop_body_start));
 
             write_gen.addExceptionHandler(begin_try, end_try, handler,
-                    new ObjectType("java.lang.Exception"));
+                    new ObjectType(TYPE_JAVA_LANG_EXCEPTION));
 
             return write_il;
         }
@@ -1091,7 +1063,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
         }
 
         private String readCallName(String name) {
-            return "readArray" + name.substring(0, 1).toUpperCase()
+            return METHOD_READ_ARRAY + name.substring(0, 1).toUpperCase()
                     + name.substring(1);
         }
 
@@ -1137,8 +1109,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                                     || (isSerializable(field_class)
                                             && force_generated_calls)))) {
                 read_il.append(new ALOAD(1));
-                read_il.append(factory.createInvoke(ibis_input_stream_name,
-                        "readKnownTypeHeader", Type.INT, Type.NO_ARGS,
+                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_READ_KNOWN_TYPE_HEADER, Type.INT, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
                 read_il.append(new ISTORE(2));
                 read_il.append(new ILOAD(2));
@@ -1155,7 +1127,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         read_il.append(new ALOAD(1));
 
                         read_il.append(factory.createInvoke(
-                                ibis_input_stream_name, callname, field_type,
+                                TYPE_IBIS_INPUT_STREAM, callname, field_type,
                                 Type.NO_ARGS, Constants.INVOKEVIRTUAL));
                         read_il.append(
                                 factory.createFieldAccess(
@@ -1167,7 +1139,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         read_il.append(new ALOAD(0));
                         read_il.append(new ALOAD(1));
                         read_il.append(factory.createInvoke(
-                                ibis_input_stream_name, "readInt", Type.INT,
+                                TYPE_IBIS_INPUT_STREAM, METHOD_READ_INT, Type.INT,
                                 Type.NO_ARGS, Constants.INVOKEVIRTUAL));
                         read_il.append(new DUP());
                         read_il.append(new ISTORE(3));
@@ -1185,8 +1157,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                                         field_type, Constants.GETFIELD));
 
                         read_il.append(factory.createInvoke(
-                                ibis_input_stream_name,
-                                "addObjectToCycleCheck", Type.VOID,
+                                TYPE_IBIS_INPUT_STREAM,
+                                METHOD_ADD_OBJECT_TO_CYCLE_CHECK, Type.VOID,
                                 new Type[] { Type.OBJECT },
                                 Constants.INVOKEVIRTUAL));
                         read_il.append(new ICONST(0));
@@ -1197,8 +1169,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         InstructionHandle loop_body_start
                                 = read_il.append(new ALOAD(1));
                         read_il.append(
-                                factory.createInvoke(ibis_input_stream_name,
-                                        "readKnownTypeHeader", Type.INT,
+                                factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                                        METHOD_READ_KNOWN_TYPE_HEADER, Type.INT,
                                         Type.NO_ARGS, Constants.INVOKEVIRTUAL));
                         read_il.append(new ISTORE(2));
                         read_il.append(new ILOAD(2));
@@ -1238,8 +1210,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         read_il.append(new ALOAD(1));
                         read_il.append(new ILOAD(2));
                         read_il.append(factory.createInvoke(
-                                ibis_input_stream_name,
-                                "getObjectFromCycleCheck", Type.OBJECT,
+                                TYPE_IBIS_INPUT_STREAM,
+                                METHOD_GET_OBJECT_FROM_CYCLE_CHECK, Type.OBJECT,
                                 new Type[] { Type.INT },
                                 Constants.INVOKEVIRTUAL));
                         read_il.append(
@@ -1282,8 +1254,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 read_il.append(new ALOAD(0));
                 read_il.append(new ALOAD(1));
                 read_il.append(new ILOAD(2));
-                read_il.append(factory.createInvoke(ibis_input_stream_name,
-                        "getObjectFromCycleCheck", Type.OBJECT,
+                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_GET_OBJECT_FROM_CYCLE_CHECK, Type.OBJECT,
                         new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
 
                 read_il.append(
@@ -1311,17 +1283,17 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 read_il.append(new ALOAD(0));
                 read_il.append(new ALOAD(1));
                 if (tpname.equals("")) {
-                    read_il.append(factory.createInvoke(ibis_input_stream_name,
-                            "readObject", Type.OBJECT, Type.NO_ARGS,
+                    read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                            METHOD_READ_OBJECT, Type.OBJECT, Type.NO_ARGS,
                             Constants.INVOKEVIRTUAL));
                 } else {
-                    read_il.append(factory.createInvoke(ibis_input_stream_name,
-                            "read" + tpname, tp, Type.NO_ARGS,
+                    read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                            METHOD_READ + tpname, tp, Type.NO_ARGS,
                             Constants.INVOKEVIRTUAL));
                 }
                 read_il.append(
-                        factory.createInvoke("java.lang.reflect.Field",
-                                "set" + tpname, Type.VOID,
+                        factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                                METHOD_SET + tpname, Type.VOID,
                                 new Type[] { Type.OBJECT, tp },
                                 Constants.INVOKEVIRTUAL));
                 read_il.append(gto);
@@ -1339,21 +1311,21 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             read_il.append(new ALOAD(3));
             if (tpname.equals("")) {
                 read_il.append(new ALOAD(4));
-                read_il.append(factory.createInvoke("java.lang.reflect.Field",
-                        "getType", new ObjectType("java.lang.Class"),
+                read_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                        METHOD_GET_TYPE, new ObjectType(TYPE_JAVA_LANG_CLASS),
                         Type.NO_ARGS, Constants.INVOKEVIRTUAL));
-                read_il.append(factory.createInvoke("java.lang.Class",
-                        "getName", Type.STRING, Type.NO_ARGS,
+                read_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS,
+                        METHOD_GET_NAME, Type.STRING, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
 
                 read_il.append(factory.createInvoke(
-                        "ibis.io.IbisSerializationInputStream",
-                        "readFieldObject", Type.VOID, new Type[] { Type.OBJECT,
+                        TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM,
+                        METHOD_READ_FIELD_OBJECT, Type.VOID, new Type[] { Type.OBJECT,
                                 Type.STRING, Type.STRING },
                         Constants.INVOKEVIRTUAL));
             } else {
                 read_il.append(factory.createInvoke(
-                        "ibis.io.IbisSerializationInputStream", "readField"
+                        TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM, METHOD_READ_FIELD
                                 + tpname, Type.VOID, new Type[] { Type.OBJECT,
                                 Type.STRING }, Constants.INVOKEVIRTUAL));
             }
@@ -1363,16 +1335,16 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             read_il.append(new ALOAD(0));
             read_il.append(new ALOAD(1));
             if (tpname.equals("")) {
-                read_il.append(factory.createInvoke(ibis_input_stream_name,
-                        "readObject", tp, Type.NO_ARGS,
+                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_READ_OBJECT, tp, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
             } else {
-                read_il.append(factory.createInvoke(ibis_input_stream_name,
-                        "read" + tpname, tp, Type.NO_ARGS,
+                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_READ + tpname, tp, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
             }
-            read_il.append(factory.createInvoke("java.lang.reflect.Field",
-                    "set" + tpname, Type.VOID, new Type[] { Type.OBJECT, tp },
+            read_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                    METHOD_SET + tpname, Type.VOID, new Type[] { Type.OBJECT, tp },
                     Constants.INVOKEVIRTUAL));
             gto2.setTarget(read_il.append(gto));
 
@@ -1382,12 +1354,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
         private InstructionList serialPersistentReads(boolean from_constructor,
                 MethodGen read_gen) {
             Instruction persistent_field_access = factory.createFieldAccess(
-                    classname, "serialPersistentFields", new ArrayType(
-                            new ObjectType("java.io.ObjectStreamField"), 1),
+                    classname, FIELD_SERIAL_PERSISTENT_FIELDS, new ArrayType(
+                            new ObjectType(TYPE_JAVA_IO_OBJECT_STREAM_FIELD), 1),
                     Constants.GETSTATIC);
             InstructionList read_il = new InstructionList();
-            int[] case_values = new int[] { 'B', 'C', 'D', 'F', 'I', 'J', 'S',
-                    'Z' };
+            int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT,
+                    CASE_OBJECT };
             InstructionHandle[] case_handles
                     = new InstructionHandle[case_values.length];
             GOTO[] gotos = new GOTO[case_values.length + 1];
@@ -1406,26 +1378,26 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     = read_il.append(persistent_field_access);
             read_il.append(new ILOAD(2));
             read_il.append(new AALOAD());
-            read_il.append(factory.createInvoke("java.io.ObjectStreamField",
-                    "getName", Type.STRING, Type.NO_ARGS,
+            read_il.append(factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
+                    METHOD_GET_NAME, Type.STRING, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
             read_il.append(new ASTORE(3));
 
             InstructionHandle begin_try = read_il.append(new PUSH(constantpool,
                     classname));
-            read_il.append(factory.createInvoke("java.lang.Class", "forName",
+            read_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS, METHOD_FOR_NAME,
                     java_lang_class_type, new Type[] { Type.STRING },
                     Constants.INVOKESTATIC));
             read_il.append(new ALOAD(3));
-            read_il.append(factory.createInvoke("java.lang.Class", "getField",
-                    new ObjectType("java.lang.reflect.Field"),
+            read_il.append(factory.createInvoke(TYPE_JAVA_LANG_CLASS, METHOD_GET_FIELD,
+                    new ObjectType(TYPE_JAVA_LANG_REFLECT_FIELD),
                     new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
             read_il.append(new ASTORE(4));
 
             if (!from_constructor && final_fields) {
                 read_il.append(new ALOAD(4));
-                read_il.append(factory.createInvoke("java.lang.reflect.Field",
-                        "getModifiers", Type.INT, Type.NO_ARGS,
+                read_il.append(factory.createInvoke(TYPE_JAVA_LANG_REFLECT_FIELD,
+                        METHOD_GET_MODIFIERS, Type.INT, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
                 read_il.append(new ISTORE(5));
             }
@@ -1433,25 +1405,25 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             read_il.append(persistent_field_access);
             read_il.append(new ILOAD(2));
             read_il.append(new AALOAD());
-            read_il.append(factory.createInvoke("java.io.ObjectStreamField",
-                    "getTypeCode", Type.CHAR, Type.NO_ARGS,
+            read_il.append(factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
+                    METHOD_GET_TYPE_CODE, Type.CHAR, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
 
-            case_handles[0] = generateReadField("Byte", Type.BYTE, read_il,
+            case_handles[0] = generateReadField(TYPE_BYTE, Type.BYTE, read_il,
                     gotos[0], from_constructor);
-            case_handles[1] = generateReadField("Char", Type.CHAR, read_il,
+            case_handles[1] = generateReadField(TYPE_CHAR, Type.CHAR, read_il,
                     gotos[1], from_constructor);
-            case_handles[2] = generateReadField("Double", Type.DOUBLE, read_il,
+            case_handles[2] = generateReadField(TYPE_DOUBLE, Type.DOUBLE, read_il,
                     gotos[2], from_constructor);
-            case_handles[3] = generateReadField("Float", Type.FLOAT, read_il,
+            case_handles[3] = generateReadField(TYPE_FLOAT, Type.FLOAT, read_il,
                     gotos[3], from_constructor);
-            case_handles[4] = generateReadField("Int", Type.INT, read_il,
+            case_handles[4] = generateReadField(TYPE_INT, Type.INT, read_il,
                     gotos[4], from_constructor);
-            case_handles[5] = generateReadField("Long", Type.LONG, read_il,
+            case_handles[5] = generateReadField(TYPE_LONG, Type.LONG, read_il,
                     gotos[5], from_constructor);
-            case_handles[6] = generateReadField("Short", Type.SHORT, read_il,
+            case_handles[6] = generateReadField(TYPE_SHORT, Type.SHORT, read_il,
                     gotos[6], from_constructor);
-            case_handles[7] = generateReadField("Boolean", Type.BOOLEAN,
+            case_handles[7] = generateReadField(TYPE_BOOLEAN, Type.BOOLEAN,
                     read_il, gotos[7], from_constructor);
 
             InstructionHandle default_handle = generateReadField("",
@@ -1463,26 +1435,26 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     case_handles, default_handle));
 
             InstructionHandle handler = read_il.append(new ASTORE(6));
-            read_il.append(factory.createNew("java.io.IOException"));
+            read_il.append(factory.createNew(TYPE_JAVA_IO_IOEXCEPTION));
             read_il.append(new DUP());
-            read_il.append(factory.createNew("java.lang.StringBuffer"));
+            read_il.append(factory.createNew(TYPE_JAVA_LANG_STRING_BUFFER));
             read_il.append(new DUP());
-            read_il.append(factory.createInvoke("java.lang.StringBuffer",
-                    "<init>", Type.VOID, Type.NO_ARGS,
+            read_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                    METHOD_INIT, Type.VOID, Type.NO_ARGS,
                     Constants.INVOKESPECIAL));
             read_il.append(new PUSH(constantpool, "Could not read field "));
-            read_il.append(factory.createInvoke("java.lang.StringBuffer",
-                    "append", Type.STRINGBUFFER, new Type[] { Type.STRING },
+            read_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                    METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
                     Constants.INVOKEVIRTUAL));
             read_il.append(new ALOAD(3));
-            read_il.append(factory.createInvoke("java.lang.StringBuffer",
-                    "append", Type.STRINGBUFFER, new Type[] { Type.STRING },
+            read_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                    METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
                     Constants.INVOKEVIRTUAL));
-            read_il.append(factory.createInvoke("java.lang.StringBuffer",
-                    "toString", Type.STRING, Type.NO_ARGS,
+            read_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                    METHOD_TO_STRING, Type.STRING, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
-            read_il.append(factory.createInvoke("java.io.IOException",
-                    "<init>", Type.VOID, new Type[] { Type.STRING },
+            read_il.append(factory.createInvoke(TYPE_JAVA_IO_IOEXCEPTION,
+                    METHOD_INIT, Type.VOID, new Type[] { Type.STRING },
                     Constants.INVOKESPECIAL));
             read_il.append(new ATHROW());
 
@@ -1498,7 +1470,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             read_il.append(new IF_ICMPLT(loop_body_start));
 
             read_gen.addExceptionHandler(begin_try, end_try, handler,
-                    new ObjectType("java.lang.Exception"));
+                    new ObjectType(TYPE_JAVA_LANG_EXCEPTION));
 
             return read_il;
         }
@@ -1591,13 +1563,13 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         + classname);
             }
 
-            String name = classname + "_ibis_io_Generator";
+            String name = classname + METHOD_IBIS_IO_GENERATOR;
 
             ObjectType class_type = new ObjectType(classname);
 
             String classfilename = name.substring(name.lastIndexOf('.') + 1)
                     + ".class";
-            ClassGen iogenGen = new ClassGen(name, "ibis.io.Generator",
+            ClassGen iogenGen = new ClassGen(name, TYPE_IBIS_IO_GENERATOR,
                     classfilename, Constants.ACC_FINAL | Constants.ACC_PUBLIC
                             | Constants.ACC_SUPER, null);
             InstructionFactory iogenFactory = new InstructionFactory(iogenGen);
@@ -1622,8 +1594,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 il.append(new ALOAD(1));
                 int ind = iogenGen.getConstantPool().addString(classname);
                 il.append(new LDC(ind));
-                il.append(iogenFactory.createInvoke(ibis_input_stream_name,
-                        "create_uninitialized_object", Type.OBJECT,
+                il.append(iogenFactory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_CREATE_UNINITIALIZED_OBJECT, Type.OBJECT,
                         new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
                 il.append(iogenFactory.createCheckCast(class_type));
                 il.append(new ASTORE(2));
@@ -1633,8 +1605,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 il.append(new ALOAD(2));
                 ind = iogenGen.getConstantPool().addString(super_classname);
                 il.append(new LDC(ind));
-                il.append(iogenFactory.createInvoke(ibis_input_stream_name,
-                        "readSerializableObject", Type.VOID, new Type[] {
+                il.append(iogenFactory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_READ_SERIALIZABLE_OBJECT, Type.VOID, new Type[] {
                                 Type.OBJECT, Type.STRING },
                         Constants.INVOKEVIRTUAL));
 
@@ -1645,7 +1617,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     il.append(new ALOAD(2));
                     il.append(new ALOAD(1));
                     il.append(iogenFactory.createInvoke(classname,
-                            "$readObjectWrapper$", Type.VOID,
+                            METHOD_$READ_OBJECT_WRAPPER$, Type.VOID,
                             ibis_input_stream_arrtp, Constants.INVOKEVIRTUAL));
                 } else {
                     int dpth = getClassDepth(clazz);
@@ -1675,24 +1647,24 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
             MethodGen method = new MethodGen(
                     Constants.ACC_FINAL | Constants.ACC_PUBLIC, Type.OBJECT,
-                    ibis_input_stream_arrtp, new String[] { "is" },
-                    "generated_newInstance", name, il,
+                    ibis_input_stream_arrtp, new String[] { VARIABLE_IS },
+                    METHOD_GENERATED_NEW_INSTANCE, name, il,
                     iogenGen.getConstantPool());
 
             method.setMaxStack(3);
             method.setMaxLocals();
-            method.addException("java.io.IOException");
-            method.addException("java.lang.ClassNotFoundException");
+            method.addException(TYPE_JAVA_IO_IOEXCEPTION);
+            method.addException(TYPE_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION);
             iogenGen.addMethod(method.getMethod());
 
             il = new InstructionList();
             il.append(new ALOAD(0));
-            il.append(iogenFactory.createInvoke("ibis.io.Generator", "<init>",
+            il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_GENERATOR, METHOD_INIT,
                     Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
             il.append(new RETURN());
 
             method = new MethodGen(Constants.ACC_PUBLIC, Type.VOID,
-                    Type.NO_ARGS, null, "<init>", name, il,
+                    Type.NO_ARGS, null, METHOD_INIT, name, il,
                     iogenGen.getConstantPool());
 
             method.setMaxStack(1);
@@ -1704,18 +1676,18 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
         void generateCode() {
             /* Generate code inside the methods */
-            int write_method_index = findMethod("generated_WriteObject",
-                    "(Libis/io/IbisSerializationOutputStream;)V");
+            int write_method_index = findMethod(METHOD_GENERATED_WRITE_OBJECT,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V);
             int default_write_method_index = findMethod(
-                    "generated_DefaultWriteObject",
-                    "(Libis/io/IbisSerializationOutputStream;I)V");
+                    METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V);
             int default_read_method_index = findMethod(
-                    "generated_DefaultReadObject",
-                    "(Libis/io/IbisSerializationInputStream;I)V");
-            int read_cons_index = findMethod("<init>",
-                    "(Libis/io/IbisSerializationInputStream;)V");
-            int read_wrapper_index = findMethod("$readObjectWrapper$",
-                    "(Libis/io/IbisSerializationInputStream;)V");
+                    METHOD_GENERATED_DEFAULT_READ_OBJECT,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V);
+            int read_cons_index = findMethod(METHOD_INIT,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
+            int read_wrapper_index = findMethod(METHOD_$READ_OBJECT_WRAPPER$,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
 
             if (verbose) {
                 System.out.println("  Generating method code class for class : "
@@ -1768,8 +1740,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     write_il.append(new ALOAD(0));
                     write_il.append(new ILOAD(2));
                     write_il.append(factory.createInvoke(
-                            ibis_output_stream_name,
-                            "defaultWriteSerializableObject", Type.VOID,
+                            TYPE_IBIS_OUTPUT_STREAM,
+                            METHOD_DEFAULT_WRITE_SERIALIZABLE_OBJECT, Type.VOID,
                             new Type[] { Type.OBJECT, Type.INT },
                             Constants.INVOKEVIRTUAL));
                 }
@@ -1816,8 +1788,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     read_il.append(new ALOAD(1));
                     read_il.append(new ALOAD(0));
                     read_il.append(new ILOAD(2));
-                    read_il.append(factory.createInvoke(ibis_input_stream_name,
-                            "defaultReadSerializableObject", Type.VOID,
+                    read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                            METHOD_DEFAULT_READ_SERIALIZABLE_OBJECT, Type.VOID,
                             new Type[] { Type.OBJECT, Type.INT },
                             Constants.INVOKEVIRTUAL));
                 }
@@ -1845,12 +1817,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 read_il = new InstructionList();
                 if (is_externalizable) {
                     read_il.append(new ALOAD(0));
-                    read_il.append(factory.createInvoke(classname, "<init>",
+                    read_il.append(factory.createInvoke(classname, METHOD_INIT,
                             Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
                 } else if (!super_is_serializable) {
                     read_il.append(new ALOAD(0));
                     read_il.append(factory.createInvoke(super_classname,
-                            "<init>", Type.VOID, Type.NO_ARGS,
+                            METHOD_INIT, Type.VOID, Type.NO_ARGS,
                             Constants.INVOKESPECIAL));
                 } else {
                     read_il.append(new ALOAD(0));
@@ -1863,8 +1835,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     read_il.append(new ALOAD(1));
                     read_il.append(new ALOAD(0));
                     read_il.append(
-                            factory.createInvoke(ibis_input_stream_name,
-                                    "addObjectToCycleCheck", Type.VOID,
+                            factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                                    METHOD_ADD_OBJECT_TO_CYCLE_CHECK, Type.VOID,
                                     new Type[] { Type.OBJECT },
                                     Constants.INVOKEVIRTUAL));
                 }
@@ -1890,8 +1862,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 write_il.append(new ALOAD(1));
                 write_il.append(new ALOAD(0));
                 write_il.append(new LDC(ind));
-                write_il.append(factory.createInvoke(ibis_output_stream_name,
-                        "writeSerializableObject", Type.VOID, new Type[] {
+                write_il.append(factory.createInvoke(TYPE_IBIS_OUTPUT_STREAM,
+                        METHOD_WRITE_SERIALIZABLE_OBJECT, Type.VOID, new Type[] {
                                 Type.OBJECT, Type.STRING },
                         Constants.INVOKEVIRTUAL));
             }
@@ -1908,25 +1880,25 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                 write_il.append(new ALOAD(1));
                 write_il.append(new ALOAD(0));
                 write_il.append(new SIPUSH((short) dpth));
-                write_il.append(factory.createInvoke(ibis_output_stream_name,
-                        "push_current_object", Type.VOID, new Type[] {
+                write_il.append(factory.createInvoke(TYPE_IBIS_OUTPUT_STREAM,
+                        METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
                                 Type.OBJECT, Type.INT },
                         Constants.INVOKEVIRTUAL));
 
                 write_il.append(new ALOAD(0));
                 write_il.append(new ALOAD(1));
                 write_il.append(factory.createInvoke(
-                            ibis_output_stream_name,
-                            "getJavaObjectOutputStream",
+                            TYPE_IBIS_OUTPUT_STREAM,
+                            METHOD_GET_JAVA_OBJECT_OUTPUT_STREAM,
                             sun_output_stream,
                             Type.NO_ARGS,
                             Constants.INVOKEVIRTUAL));
                 if (is_externalizable) {
                     /* Invoke writeExternal */
                     write_il.append(
-                            factory.createInvoke(classname, "writeExternal",
+                            factory.createInvoke(classname, METHOD_WRITE_EXTERNAL,
                                     Type.VOID, new Type[] { new ObjectType(
-                                            "java.io.ObjectOutput") },
+                                            TYPE_JAVA_IO_OBJECT_OUTPUT) },
                                     Constants.INVOKEVIRTUAL));
                 } else {
                     /* Invoke writeObject. */
@@ -1935,8 +1907,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
 
                 /* And then, restore IbisSerializationOutputStream's idea of the current object. */
                 write_il.append(new ALOAD(1));
-                write_il.append(factory.createInvoke(ibis_output_stream_name,
-                        "pop_current_object", Type.VOID, Type.NO_ARGS,
+                write_il.append(factory.createInvoke(TYPE_IBIS_OUTPUT_STREAM,
+                        METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
             } else {
                 write_il.append(generateDefaultWrites(write_gen));
@@ -1962,38 +1934,38 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                     read_il.append(new ALOAD(1));
                     read_il.append(new ALOAD(0));
                     read_il.append(new SIPUSH((short) dpth));
-                    read_il.append(factory.createInvoke(ibis_input_stream_name,
-                            "push_current_object", Type.VOID, new Type[] {
+                    read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                            METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
                                     Type.OBJECT, Type.INT },
                             Constants.INVOKEVIRTUAL));
 
                     read_il.append(new ALOAD(0));
                     read_il.append(new ALOAD(1));
                     read_il.append(factory.createInvoke(
-                                ibis_input_stream_name,
-                                "getJavaObjectInputStream",
+                                TYPE_IBIS_INPUT_STREAM,
+                                METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
                                 sun_input_stream,
                                 Type.NO_ARGS,
                                 Constants.INVOKEVIRTUAL));
                     if (is_externalizable) {
                         /* Invoke readExternal */
                         read_il.append(factory.createInvoke(classname,
-                                "readExternal", Type.VOID,
+                                METHOD_READ_EXTERNAL, Type.VOID,
                                 new Type[] { new ObjectType(
                                         "java.io.ObjectInput") },
                                 Constants.INVOKEVIRTUAL));
                     } else {
                         /* Invoke readObject. */
                         read_il.append(factory.createInvoke(classname,
-                                "readObject", Type.VOID,
+                                METHOD_READ_OBJECT, Type.VOID,
                                 new Type[] { sun_input_stream },
                                 Constants.INVOKESPECIAL));
                     }
 
                     /* And then, restore IbisSerializationOutputStream's idea of the current object. */
                     read_il.append(new ALOAD(1));
-                    read_il.append(factory.createInvoke(ibis_input_stream_name,
-                            "pop_current_object", Type.VOID, Type.NO_ARGS,
+                    read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                            METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
                             Constants.INVOKEVIRTUAL));
                 } else {
                     read_il.append(generateDefaultReads(true, mgen));
@@ -2066,38 +2038,39 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
         arguments = new HashMap<String, JavaClass>();
 
         primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo(
-                "writeBoolean", "readBoolean", "readFieldBoolean",
+                METHOD_WRITE_BOOLEAN, METHOD_READ_BOOLEAN, METHOD_READ_FIELD_BOOLEAN,
                 Type.BOOLEAN, true));
 
         primitiveSerialization.put(Type.BYTE, new SerializationInfo(
-                "writeByte", "readByte", "readFieldByte", Type.BYTE, true));
+                METHOD_WRITE_BYTE, METHOD_READ_BYTE, METHOD_READ_FIELD_BYTE, Type.BYTE, true));
 
         primitiveSerialization.put(Type.SHORT, new SerializationInfo(
-                "writeShort", "readShort", "readFieldShort", Type.SHORT, true));
+                METHOD_WRITE_SHORT, METHOD_READ_SHORT, METHOD_READ_FIELD_SHORT, Type.SHORT, true));
 
         primitiveSerialization.put(Type.CHAR, new SerializationInfo(
-                "writeChar", "readChar", "readFieldChar", Type.CHAR, true));
+                METHOD_WRITE_CHAR, METHOD_READ_CHAR, METHOD_READ_FIELD_CHAR, Type.CHAR, true));
 
         primitiveSerialization.put(Type.INT, new SerializationInfo("writeInt",
-                "readInt", "readFieldInt", Type.INT, true));
+                METHOD_READ_INT, METHOD_READ_FIELD_INT, Type.INT, true));
+        
         primitiveSerialization.put(Type.LONG, new SerializationInfo(
-                "writeLong", "readLong", "readFieldLong", Type.LONG, true));
+                METHOD_WRITE_LONG, METHOD_READ_LONG, METHOD_READ_FIELD_LONG, Type.LONG, true));
 
         primitiveSerialization.put(Type.FLOAT, new SerializationInfo(
-                "writeFloat", "readFloat", "readFieldFloat", Type.FLOAT, true));
+                METHOD_WRITE_FLOAT, METHOD_READ_FLOAT, METHOD_READ_FIELD_FLOAT, Type.FLOAT, true));
 
         primitiveSerialization.put(Type.DOUBLE, new SerializationInfo(
-                "writeDouble", "readDouble", "readFieldDouble", Type.DOUBLE,
+                METHOD_WRITE_DOUBLE, METHOD_READ_DOUBLE, METHOD_READ_FIELD_DOUBLE, Type.DOUBLE,
                 true));
         primitiveSerialization.put(Type.STRING, new SerializationInfo(
-                "writeString", "readString", "readFieldString", Type.STRING,
+                METHOD_WRITE_STRING, METHOD_READ_STRING, METHOD_READ_FIELD_STRING, Type.STRING,
                 true));
         primitiveSerialization.put(java_lang_class_type, new SerializationInfo(
-                "writeClass", "readClass", "readFieldClass",
+                METHOD_WRITE_CLASS, METHOD_READ_CLASS, METHOD_READ_FIELD_CLASS,
                 java_lang_class_type, true));
 
-        referenceSerialization = new SerializationInfo("writeObject",
-                "readObject", "readFieldObject", Type.OBJECT, false);
+        referenceSerialization = new SerializationInfo(METHOD_WRITE_OBJECT,
+                METHOD_READ_OBJECT, METHOD_READ_FIELD_OBJECT, Type.OBJECT, false);
 
         silent = true;
     }
@@ -2185,15 +2158,15 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
     }
 
     boolean isSerializable(JavaClass clazz) {
-        return Repository.implementationOf(clazz, "java.io.Serializable");
+        return Repository.implementationOf(clazz, TYPE_JAVA_IO_SERIALIZABLE);
     }
 
     boolean isExternalizable(JavaClass clazz) {
-        return Repository.implementationOf(clazz, "java.io.Externalizable");
+        return Repository.implementationOf(clazz, TYPE_JAVA_IO_EXTERNALIZABLE);
     }
 
     boolean isIbisSerializable(JavaClass clazz) {
-        return directImplementationOf(clazz, "ibis.io.Serializable");
+        return directImplementationOf(clazz, TYPE_IBIS_IO_SERIALIZABLE);
     }
 
     private void addTargetClass(JavaClass clazz) {
@@ -2240,16 +2213,16 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
             return;
         }
 
-        if (clazz.getClassName().equals("java.lang.Class")) {
+        if (clazz.getClassName().equals(TYPE_JAVA_LANG_CLASS)) {
             return;
         }
 
-        if (clazz.getClassName().equals("java.lang.String")) {
+        if (clazz.getClassName().equals(TYPE_JAVA_LANG_STRING)) {
             return;
         }
 
         try {
-            if (Repository.instanceOf(clazz, "java.lang.Enum")) {
+            if (Repository.instanceOf(clazz, TYPE_JAVA_LANG_ENUM)) {
                 return;
             }
         } catch(Exception e) {
@@ -2275,7 +2248,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                             if (verbose) {
                                 System.out.println(clazz.getClassName()
                                         + " already implements "
-                                        + "ibis.io.Serializable");
+                                        + TYPE_IBIS_IO_SERIALIZABLE);
                             }
                         }
                     }
@@ -2360,7 +2333,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
         if (n.equals(c1)) {
             return true;
         }
-        if (n.equals("java.lang.Object")) {
+        if (n.equals(TYPE_JAVA_LANG_OBJECT)) {
             return false;
         }
         return predecessor(c1, Repository.lookupClass(n));
@@ -2465,7 +2438,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent {
                         if (verbose) {
                             System.out.println(clazz.getClassName()
                                     + " already implements "
-                                    + "ibis.io.Serializable");
+                                    + TYPE_IBIS_IO_SERIALIZABLE);
                         }
                     }
                 } else {
