@@ -6,8 +6,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotActiveException;
-import java.io.ObjectStreamClass;
-import java.io.ObjectInputStream;
 import java.io.StreamCorruptedException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -17,7 +15,7 @@ import java.util.Hashtable;
  * This is the <code>SerializationInputStream</code> version that is used
  * for Ibis serialization.
  */
-public class IbisSerializationInputStream extends DataSerializationInputStream {
+public class ObjectInputStream extends DataSerializationInputStream {
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_IBIS_SERIALIZATION = false;
 
@@ -83,10 +81,10 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         if (STATS_NONREWRITTEN) {
             nonRewritten = new Hashtable<Class<?>, Integer>();
-            System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN"
+            System.out.println("ObjectInputStream.STATS_NONREWRITTEN"
                     + " enabled");
             Runtime.getRuntime().addShutdownHook(
-                    new Thread("IbisSerializationInputStream ShutdownHook") {
+                    new Thread("ObjectInputStream ShutdownHook") {
                         public void run() {
                             System.out.print("Serializable objects created "
                                     + "nonrewritten: ");
@@ -197,7 +195,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * @param in		the underlying <code>DataInputStream</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public IbisSerializationInputStream(DataInputStream in) throws IOException {
+    public ObjectInputStream(DataInputStream in) throws IOException {
         super(in);
         objects = new IbisVector(1024);
         init(true);
@@ -206,7 +204,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * Constructor, may be used when this class is sub-classed.
      */
-    protected IbisSerializationInputStream() throws IOException {
+    protected ObjectInputStream() throws IOException {
         super();
         objects = new IbisVector(1024);
         init(true);
@@ -217,7 +215,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /*
-     * If you at some point want to override IbisSerializationOutputStream,
+     * If you at some point want to override ObjectOutputStream,
      * you probably need to override the methods from here on up until
      * comment tells you otherwise.
      */
@@ -237,7 +235,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /*
-     * If you are overriding IbisSerializationInputStream,
+     * If you are overriding ObjectInputStream,
      * you can stop now :-) 
      * The rest is built on top of these.
      */
@@ -592,7 +590,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     public void statistics() {
-        System.err.println("IbisSerializationInputStream: "
+        System.err.println("ObjectInputStream: "
                 + "statistics() not yet implemented");
     }
 
@@ -1655,7 +1653,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     private JavaObjectInputStream objectStream = null;
 
-    public ObjectInputStream getJavaObjectInputStream()
+    public java.io.ObjectInputStream getJavaObjectInputStream()
             throws IOException {
         if (objectStream == null) {
             objectStream = new JavaObjectInputStream(this);
@@ -1663,11 +1661,11 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         return objectStream;
     }
 
-    private class JavaObjectInputStream extends ObjectInputStream {
+    private class JavaObjectInputStream extends java.io.ObjectInputStream {
 
-        IbisSerializationInputStream ibisStream;
+        ObjectInputStream ibisStream;
 
-        JavaObjectInputStream(IbisSerializationInputStream s)
+        JavaObjectInputStream(ObjectInputStream s)
                 throws IOException {
             super();
             ibisStream = s;
@@ -1712,13 +1710,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             // ignored
         }
 
-        protected ObjectStreamClass readClassDescriptor()
+        protected java.io.ObjectStreamClass readClassDescriptor()
                 throws IOException, ClassNotFoundException {
             Class<?> cl = ibisStream.readClass();
             if (cl == null) {
                 return null;
             }
-            return ObjectStreamClass.lookup(cl);
+            return java.io.ObjectStreamClass.lookup(cl);
         }
 
         public void readFully(byte[] b) throws IOException {
@@ -1747,7 +1745,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             throw new SerializationError("registerValidation not implemented");
         }
 
-        public Class<?> resolveClass(ObjectStreamClass desc)
+        public Class<?> resolveClass(java.io.ObjectStreamClass desc)
                   throws IOException, ClassNotFoundException {
                 return desc.forClass();
         }
@@ -1772,7 +1770,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             throw new IOException("mark/reset not supported");
         }
 
-        public GetField readFields()
+        public java.io.ObjectInputStream.GetField readFields()
                 throws IOException, ClassNotFoundException {
             if (current_object == null) {
                 throw new NotActiveException("not in readObject");
@@ -1788,7 +1786,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         /**
          * The Ibis serialization implementation of <code>GetField</code>.
          */
-        private class ImplGetField extends GetField {
+        private class ImplGetField extends java.io.ObjectInputStream.GetField{
             private double[] doubles;
 
             private long[] longs;
@@ -1822,9 +1820,9 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                 this.t = t;
             }
 
-            public ObjectStreamClass getObjectStreamClass() {
+            public java.io.ObjectStreamClass getObjectStreamClass() {
                 /*  I don't know how it could be used here, but ... */
-                return ObjectStreamClass.lookup(t.clazz);
+                return java.io.ObjectStreamClass.lookup(t.clazz);
             }
 
             public boolean defaulted(String name) {

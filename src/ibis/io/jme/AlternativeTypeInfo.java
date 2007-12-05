@@ -3,8 +3,6 @@
 package ibis.io.jme;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
 import java.lang.reflect.Field;
@@ -40,7 +38,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     private static Method newInstance = null;
 
     private static class ArrayWriter extends IbisWriter {
-        void writeObject(IbisSerializationOutputStream out, Object ref,
+        void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             out.writeArray(ref, t.clazz, unshared);
@@ -48,7 +46,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class IbisSerializableWriter extends IbisWriter {
-        void writeObject(IbisSerializationOutputStream out, Object ref,
+        void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
@@ -57,7 +55,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class ExternalizableWriter extends IbisWriter {
-        void writeObject(IbisSerializationOutputStream out, Object ref,
+        void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
@@ -69,7 +67,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class StringWriter extends IbisWriter {
-        void writeObject(IbisSerializationOutputStream out, Object ref,
+        void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
@@ -78,7 +76,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class ClassWriter extends IbisWriter {
-        void writeObject(IbisSerializationOutputStream out, Object ref,
+        void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
@@ -87,7 +85,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private class EnumWriter extends IbisWriter {
-        void writeObject(IbisSerializationOutputStream out, Object ref,
+        void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
@@ -96,7 +94,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class SerializableWriter extends IbisWriter {
-        void writeObject(IbisSerializationOutputStream out, Object ref,
+        void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
@@ -111,12 +109,12 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                         + t.clazz.getName(), e);
             }
             out.pop_current_object();
-            IbisSerializationOutputStream.addStatSendObject(ref);
+            ObjectOutputStream.addStatSendObject(ref);
         }
     }
 
     private static class NotSerializableWriter extends IbisWriter {
-        void writeObject(IbisSerializationOutputStream out, Object ref,
+        void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             throw new IbisNotSerializableException("Not serializable: " +
@@ -125,7 +123,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class IbisSerializableReader extends IbisReader {
-        Object readObject(IbisSerializationInputStream in,
+        Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             return t.gen.generated_newInstance(in);
@@ -133,7 +131,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class ArrayReader extends IbisReader {
-        Object readObject(IbisSerializationInputStream in,
+        Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             return in.readArray(t.clazz, typeHandle);
@@ -141,7 +139,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class StringReader extends IbisReader {
-        Object readObject(IbisSerializationInputStream in,
+        Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             String o = in.readUTF();
@@ -151,7 +149,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class ClassReader extends IbisReader {
-        Object readObject(IbisSerializationInputStream in,
+        Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             String o = in.readUTF();
@@ -163,7 +161,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
     @SuppressWarnings("unchecked")
     private static class EnumReader extends IbisReader {
-        Object readObject(IbisSerializationInputStream in,
+        Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             String o = in.readUTF();
@@ -180,7 +178,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class ExternalizableReader extends IbisReader {
-        Object readObject(IbisSerializationInputStream in,
+        Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             Object obj;
@@ -203,7 +201,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     }
 
     private static class SerializableReader extends IbisReader {
-        Object readObject(IbisSerializationInputStream in,
+        Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             Object obj = in.create_uninitialized_object(t.clazz);
@@ -488,7 +486,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
      * @exception IOException
      * 			when anything goes wrong
      */
-    void invokeWriteObject(Object o, ObjectOutputStream out)
+    void invokeWriteObject(Object o, java.io.ObjectOutputStream out)
             throws IllegalAccessException, IllegalArgumentException,
             InvocationTargetException {
         //	System.out.println("invoke writeObject");
@@ -505,7 +503,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
      * @exception IOException
      * 			when anything goes wrong
      */
-    void invokeReadObject(Object o, ObjectInputStream in)
+    void invokeReadObject(Object o, java.io.ObjectInputStream in)
             throws IllegalAccessException, IllegalArgumentException,
             InvocationTargetException {
         //	System.out.println("invoke readObject");

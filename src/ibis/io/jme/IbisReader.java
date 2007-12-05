@@ -8,7 +8,7 @@ import java.io.IOException;
  * so that runtime tests can be avoided.
  */
 abstract class IbisReader {
-    abstract Object readObject(IbisSerializationInputStream in,
+    abstract Object readObject(ObjectInputStream in,
             AlternativeTypeInfo t, int typeHandle)
             throws IOException, ClassNotFoundException;
 }

@@ -17,7 +17,7 @@ public interface JMESerializable {
      * 		  object is written
      * @exception IOException is thrown when an IO error occurs. 	
      */
-    public void generated_WriteObject(IbisSerializationOutputStream out)
+    public void generated_WriteObject(ObjectOutputStream out)
             throws IOException;
 
     /**
@@ -32,7 +32,7 @@ public interface JMESerializable {
      * @param lvl the "level" of the fields written
      * @exception IOException is thrown when an IO error occurs. 	
      */
-    public void generated_DefaultWriteObject(IbisSerializationOutputStream out,
+    public void generated_DefaultWriteObject(ObjectOutputStream out,
             int lvl) throws IOException;
 
     /**
@@ -47,6 +47,6 @@ public interface JMESerializable {
      * @param lvl the "level" of the fields read
      * @exception IOException is thrown when an IO error occurs. 	
      */
-    public void generated_DefaultReadObject(IbisSerializationInputStream in,
+    public void generated_DefaultReadObject(ObjectInputStream in,
             int lvl) throws IOException, ClassNotFoundException;
 }

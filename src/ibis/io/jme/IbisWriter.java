@@ -8,11 +8,11 @@ import java.io.IOException;
  * so that runtime tests can be avoided.
  */
 abstract class IbisWriter {
-    abstract void writeObject(IbisSerializationOutputStream out, Object ref,
+    abstract void writeObject(ObjectOutputStream out, Object ref,
             AlternativeTypeInfo t, int hashCode, boolean unshared)
             throws IOException;
 
-    void writeHeader(IbisSerializationOutputStream out, Object ref,
+    void writeHeader(ObjectOutputStream out, Object ref,
             AlternativeTypeInfo t, int hashCode, boolean unshared)
             throws IOException {
         // Code needed for most IbisWriters.
@@ -20,6 +20,6 @@ abstract class IbisWriter {
             out.assignHandle(ref, hashCode);
         }
         out.writeType(t.clazz);
-        IbisSerializationOutputStream.addStatSendObject(ref);
+        ObjectOutputStream.addStatSendObject(ref);
     }
 }

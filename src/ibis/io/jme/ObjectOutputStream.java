@@ -7,7 +7,6 @@ import ibis.io.Replacer;
 import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.util.Hashtable;
 
@@ -15,7 +14,7 @@ import java.util.Hashtable;
  * This is the <code>SerializationOutputStream</code> version that is used
  * for Ibis serialization.
  */
-public class IbisSerializationOutputStream
+public class ObjectOutputStream
         extends DataSerializationOutputStream {
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_IBIS_SERIALIZATION = false;
@@ -146,7 +145,7 @@ public class IbisSerializationOutputStream
      * @param out		the underlying <code>DataOutputStream</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public IbisSerializationOutputStream(DataOutputStream out)
+    public ObjectOutputStream(DataOutputStream out)
             throws IOException {
         super(out);
 
@@ -159,7 +158,7 @@ public class IbisSerializationOutputStream
     /**
      * Constructor, may be used when this class is sub-classed.
      */
-    protected IbisSerializationOutputStream() throws IOException {
+    protected ObjectOutputStream() throws IOException {
         super();
         types_clear();
 
@@ -1148,7 +1147,7 @@ public class IbisSerializationOutputStream
 
     private JavaObjectOutputStream objectStream = null;
 
-    public ObjectOutputStream getJavaObjectOutputStream()
+    public java.io.ObjectOutputStream getJavaObjectOutputStream()
             throws IOException {
         if (objectStream == null) {
             objectStream = new JavaObjectOutputStream(this);
@@ -1156,11 +1155,11 @@ public class IbisSerializationOutputStream
         return objectStream;
     }
 
-    private class JavaObjectOutputStream extends ObjectOutputStream {
+    private class JavaObjectOutputStream extends java.io.ObjectOutputStream {
 
-        IbisSerializationOutputStream ibisStream;
+        ObjectOutputStream ibisStream;
 
-        JavaObjectOutputStream(IbisSerializationOutputStream s)
+        JavaObjectOutputStream(ObjectOutputStream s)
                 throws IOException {
             super();
             ibisStream = s;
