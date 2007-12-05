@@ -1,8 +1,17 @@
+/* $Id: IOGenerator.java 7063 2007-12-05 15:49:42Z nick $ */
+
 package ibis.io.rewriter;
 
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+/**
+ * The RewriterConstants contains constants for various TYPE, METHOD and VARIABLE 
+ * as well as other constants used by the CodeGenerator to generate the code.
+ * 
+ * @author Nick Palmer (npr200@few.vu.nl)
+ *
+ */
 public interface RewriterConstants {
 	static final String TYPE_IBIS_INPUT_STREAM = "ibis.io.IbisSerializationInputStream";
 	

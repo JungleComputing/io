@@ -1,3 +1,5 @@
+/* $Id: IOGenerator.java 7063 2007-12-05 15:49:42Z nick $ */
+
 package ibis.io.rewriter;
 
 import java.io.ByteArrayOutputStream;
@@ -17,6 +19,14 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+/**
+ * SerializationInfo contains static methods for determining information about a particular
+ * class as well as an interface to determine the proper method names for serialization of
+ * a particular type.
+ * 
+ * @author Nick Palmer (npr200@few.vu.nl)
+ *
+ */
 class SerializationInfo implements RewriterConstants {
 
     private static class FieldComparator implements Comparator<Field> {

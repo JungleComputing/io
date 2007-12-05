@@ -1,3 +1,5 @@
+/* $Id: IOGenerator.java 7063 2007-12-05 15:49:42Z nick $ */
+
 package ibis.io.rewriter;
 
 import java.util.Arrays;
@@ -48,6 +50,13 @@ import org.apache.bcel.generic.SIPUSH;
 import org.apache.bcel.generic.SWITCH;
 import org.apache.bcel.generic.Type;
 
+/**
+ * The CodeGenerator is responsible for generation of the actual bytecode
+ * used at runtime to do serialization.
+ * 
+ * @author Nick Palmer (npr200@few.vu.nl)
+ *
+ */
 class CodeGenerator implements RewriterConstants {
 
 	JavaClass clazz;
@@ -196,7 +205,7 @@ class CodeGenerator implements RewriterConstants {
                     cl.getSuperclassName()));
     }
 
-    void generateMethods() {
+    void generateEmptyMethods() {
         /* Generate the necessary (empty) methods. */
 
         if (generator.isVerbose()) {
@@ -1425,20 +1434,7 @@ class CodeGenerator implements RewriterConstants {
 
     void generateCode() {
         /* Generate code inside the methods */
-        int write_method_index = findMethod(METHOD_GENERATED_WRITE_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V);
-        int default_write_method_index = findMethod(
-                METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V);
-        int default_read_method_index = findMethod(
-                METHOD_GENERATED_DEFAULT_READ_OBJECT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V);
-        int read_cons_index = findMethod(METHOD_INIT,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
-        int read_wrapper_index = findMethod(METHOD_$READ_OBJECT_WRAPPER$,
-                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
-
-        if (generator.isVerbose()) {
+    	if (generator.isVerbose()) {
             System.out.println("  Generating method code class for class : "
                             + classname);
             System.out.println("    Number of fields " + fields.length);
@@ -1446,121 +1442,33 @@ class CodeGenerator implements RewriterConstants {
 
         int dpth = getClassDepth(clazz);
 
-        /* void generated_DefaultWriteObject(
-         *         IbisSerializationOutputStream out, int level) {
-         *     if (level == dpth) {
-         *          ... write fields ... (the code resulting from the
-         *                  generateDefaultWrites() call).
-         *     } else if (level < dpth) {
-         *         super.generated_DefaultWriteObject(out, level);
-         *     }
-         * }
-         */
+		fillInGeneratedDefaultWriteObjectMethod(dpth);
+		fillInGeneratedDefaultReadObjectMethod(dpth);
+        fillInGeneratedWriteObjectMethod(dpth);
+        fillInGeneratedReadObjectMethod(dpth);
 
-        MethodGen write_gen = new MethodGen(
-                methods[default_write_method_index], classname,
-                constantpool);
+        clazz = gen.getJavaClass();
 
-        InstructionList write_il = new InstructionList();
-        InstructionHandle end = write_gen.getInstructionList().getStart();
+        Repository.removeClass(classname);
+        Repository.addClass(clazz);
 
-        write_il.append(new ILOAD(2));
-        write_il.append(new SIPUSH((short) dpth));
-        IF_ICMPNE ifcmpne = new IF_ICMPNE(null);
-        write_il.append(ifcmpne);
-        write_il.append(generateDefaultWrites(write_gen));
-        write_il.append(new GOTO(end));
-        if (super_is_ibis_serializable || super_is_serializable) {
-            InstructionHandle i = write_il.append(new ILOAD(2));
-            ifcmpne.setTarget(i);
-            write_il.append(new SIPUSH((short) dpth));
-            write_il.append(new IF_ICMPGT(end));
-            if (super_is_ibis_serializable || generator.forceGeneratedCalls()) {
-                write_il.append(new ALOAD(0));
-                write_il.append(new ALOAD(1));
-                write_il.append(new ILOAD(2));
-                write_il.append(
-                        createGeneratedDefaultWriteObjectInvocation(
-                                super_classname));
-            } else {
-                /*  Superclass is not rewritten.
-                 */
-                write_il.append(new ALOAD(1));
-                write_il.append(new ALOAD(0));
-                write_il.append(new ILOAD(2));
-                write_il.append(factory.createInvoke(
-                        TYPE_IBIS_OUTPUT_STREAM,
-                        METHOD_DEFAULT_WRITE_SERIALIZABLE_OBJECT, Type.VOID,
-                        new Type[] { Type.OBJECT, Type.INT },
-                        Constants.INVOKEVIRTUAL));
-            }
-        } else {
-            ifcmpne.setTarget(end);
-        }
-        write_il.append(write_gen.getInstructionList());
+        JavaClass instgen = generateInstanceGenerator();
 
-        write_gen.setInstructionList(write_il);
-        write_gen.setMaxStack(MethodGen.getMaxStack(constantpool, write_il,
-                write_gen.getExceptionHandlers()));
-        write_gen.setMaxLocals();
+        Repository.addClass(instgen);
 
-        gen.setMethodAt(write_gen.getMethod(), default_write_method_index);
+        generator.markRewritten(clazz, instgen);
+    }
 
-        MethodGen read_gen = new MethodGen(
-                methods[default_read_method_index], classname,
-                constantpool);
-
-        InstructionList read_il = new InstructionList();
-        end = read_gen.getInstructionList().getStart();
-
-        read_il.append(new ILOAD(2));
-        read_il.append(new SIPUSH((short) dpth));
-        ifcmpne = new IF_ICMPNE(null);
-        read_il.append(ifcmpne);
-        read_il.append(generateDefaultReads(false, read_gen));
-        read_il.append(new GOTO(end));
-
-        if (super_is_ibis_serializable || super_is_serializable) {
-            InstructionHandle i = read_il.append(new ILOAD(2));
-            ifcmpne.setTarget(i);
-            read_il.append(new SIPUSH((short) dpth));
-            read_il.append(new IF_ICMPGT(end));
-            if (super_is_ibis_serializable || generator.forceGeneratedCalls()) {
-                read_il.append(new ALOAD(0));
-                read_il.append(new ALOAD(1));
-                read_il.append(new ILOAD(2));
-                read_il.append(createGeneratedDefaultReadObjectInvocation(
-                        super_classname, factory, Constants.INVOKESPECIAL));
-            } else {
-                /*  Superclass is not rewritten.
-                 */
-                read_il.append(new ALOAD(1));
-                read_il.append(new ALOAD(0));
-                read_il.append(new ILOAD(2));
-                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
-                        METHOD_DEFAULT_READ_SERIALIZABLE_OBJECT, Type.VOID,
-                        new Type[] { Type.OBJECT, Type.INT },
-                        Constants.INVOKEVIRTUAL));
-            }
-        } else {
-            ifcmpne.setTarget(end);
-        }
-
-        read_il.append(read_gen.getInstructionList());
-
-        read_gen.setInstructionList(read_il);
-        read_gen.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
-                read_gen.getExceptionHandlers()));
-        read_gen.setMaxLocals();
-
-        gen.setMethodAt(read_gen.getMethod(), default_read_method_index);
-
-        /* Now, produce the read constructor. It only exists if the
+	private void fillInGeneratedReadObjectMethod(int dpth) {
+		/* Now, produce the read constructor. It only exists if the
          * superclass is not serializable, or if the superclass has an
          * ibis constructor, or is assumed to have one (-force option).
          */
-
-        read_il = null;
+        
+        /* Now, do the same for the reading side. */
+        MethodGen mgen = null;
+        int index = -1;    
+        InstructionList read_il = null;
         if (is_externalizable || super_has_ibis_constructor
                 || !super_is_serializable || generator.forceGeneratedCalls()) {
             read_il = new InstructionList();
@@ -1589,11 +1497,81 @@ class CodeGenerator implements RewriterConstants {
                                 new Type[] { Type.OBJECT },
                                 Constants.INVOKEVIRTUAL));
             }
+
+            int read_cons_index = findMethod(METHOD_INIT,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
+            mgen = new MethodGen(methods[read_cons_index], classname,
+                    constantpool);
+            index = read_cons_index;
+        } else if (hasReadObject()) {
+            int read_wrapper_index = findMethod(METHOD_$READ_OBJECT_WRAPPER$,
+                    SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
+            mgen = new MethodGen(methods[read_wrapper_index], classname,
+                    constantpool);
+            read_il = new InstructionList();
+            index = read_wrapper_index;
         }
 
-        /* Now, produce generated_WriteObject. */
-        write_il = new InstructionList();
-        write_gen = new MethodGen(methods[write_method_index], classname,
+        if (read_il != null) {
+            if (is_externalizable || hasReadObject()) {
+                /* First, get and set IbisSerializationInputStream's idea of the current object. */
+                read_il.append(new ALOAD(1));
+                read_il.append(new ALOAD(0));
+                read_il.append(new SIPUSH((short) dpth));
+                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
+                                Type.OBJECT, Type.INT },
+                        Constants.INVOKEVIRTUAL));
+
+                read_il.append(new ALOAD(0));
+                read_il.append(new ALOAD(1));
+                read_il.append(factory.createInvoke(
+                            TYPE_IBIS_INPUT_STREAM,
+                            METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
+                            sun_input_stream,
+                            Type.NO_ARGS,
+                            Constants.INVOKEVIRTUAL));
+                if (is_externalizable) {
+                    /* Invoke readExternal */
+                    read_il.append(factory.createInvoke(classname,
+                            METHOD_READ_EXTERNAL, Type.VOID,
+                            new Type[] { new ObjectType(
+                                    "java.io.ObjectInput") },
+                            Constants.INVOKEVIRTUAL));
+                } else {
+                    /* Invoke readObject. */
+                    read_il.append(factory.createInvoke(classname,
+                            METHOD_READ_OBJECT, Type.VOID,
+                            new Type[] { sun_input_stream },
+                            Constants.INVOKESPECIAL));
+                }
+
+                /* And then, restore IbisSerializationOutputStream's idea of the current object. */
+                read_il.append(new ALOAD(1));
+                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
+                        Constants.INVOKEVIRTUAL));
+            } else {
+                read_il.append(generateDefaultReads(true, mgen));
+            }
+
+            read_il.append(mgen.getInstructionList());
+            mgen.setInstructionList(read_il);
+
+            mgen.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
+                    mgen.getExceptionHandlers()));
+            mgen.setMaxLocals();
+
+            gen.setMethodAt(mgen.getMethod(), index);
+        }
+	}
+
+	private void fillInGeneratedWriteObjectMethod(int dpth) {
+		/* Now, produce generated_WriteObject. */
+        int write_method_index = findMethod(METHOD_GENERATED_WRITE_OBJECT,
+                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V);
+        InstructionList write_il = new InstructionList();
+        MethodGen write_gen = new MethodGen(methods[write_method_index], classname,
                 constantpool);
 
         /* write the superclass if neccecary */
@@ -1662,74 +1640,7 @@ class CodeGenerator implements RewriterConstants {
         } else {
             write_il.append(generateDefaultWrites(write_gen));
         }
-
-        /* Now, do the same for the reading side. */
-        MethodGen mgen = null;
-        int index = -1;
-        if (read_il != null) {
-            mgen = new MethodGen(methods[read_cons_index], classname,
-                    constantpool);
-            index = read_cons_index;
-        } else if (hasReadObject()) {
-            mgen = new MethodGen(methods[read_wrapper_index], classname,
-                    constantpool);
-            read_il = new InstructionList();
-            index = read_wrapper_index;
-        }
-
-        if (read_il != null) {
-            if (is_externalizable || hasReadObject()) {
-                /* First, get and set IbisSerializationInputStream's idea of the current object. */
-                read_il.append(new ALOAD(1));
-                read_il.append(new ALOAD(0));
-                read_il.append(new SIPUSH((short) dpth));
-                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
-                        METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
-                                Type.OBJECT, Type.INT },
-                        Constants.INVOKEVIRTUAL));
-
-                read_il.append(new ALOAD(0));
-                read_il.append(new ALOAD(1));
-                read_il.append(factory.createInvoke(
-                            TYPE_IBIS_INPUT_STREAM,
-                            METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
-                            sun_input_stream,
-                            Type.NO_ARGS,
-                            Constants.INVOKEVIRTUAL));
-                if (is_externalizable) {
-                    /* Invoke readExternal */
-                    read_il.append(factory.createInvoke(classname,
-                            METHOD_READ_EXTERNAL, Type.VOID,
-                            new Type[] { new ObjectType(
-                                    "java.io.ObjectInput") },
-                            Constants.INVOKEVIRTUAL));
-                } else {
-                    /* Invoke readObject. */
-                    read_il.append(factory.createInvoke(classname,
-                            METHOD_READ_OBJECT, Type.VOID,
-                            new Type[] { sun_input_stream },
-                            Constants.INVOKESPECIAL));
-                }
-
-                /* And then, restore IbisSerializationOutputStream's idea of the current object. */
-                read_il.append(new ALOAD(1));
-                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
-                        METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
-                        Constants.INVOKEVIRTUAL));
-            } else {
-                read_il.append(generateDefaultReads(true, mgen));
-            }
-
-            read_il.append(mgen.getInstructionList());
-            mgen.setInstructionList(read_il);
-
-            mgen.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
-                    mgen.getExceptionHandlers()));
-            mgen.setMaxLocals();
-
-            gen.setMethodAt(mgen.getMethod(), index);
-        }
-
+        
         write_gen = new MethodGen(methods[write_method_index], classname,
                 constantpool);
         write_il.append(write_gen.getInstructionList());
@@ -1740,16 +1651,126 @@ class CodeGenerator implements RewriterConstants {
         write_gen.setMaxLocals();
 
         gen.setMethodAt(write_gen.getMethod(), write_method_index);
+	}
 
-        clazz = gen.getJavaClass();
+	private void fillInGeneratedDefaultWriteObjectMethod(int dpth) {
+		/* void generated_DefaultWriteObject(
+         *         IbisSerializationOutputStream out, int level) {
+         *     if (level == dpth) {
+         *          ... write fields ... (the code resulting from the
+         *                  generateDefaultWrites() call).
+         *     } else if (level < dpth) {
+         *         super.generated_DefaultWriteObject(out, level);
+         *     }
+         * }
+         */
 
-        Repository.removeClass(classname);
-        Repository.addClass(clazz);
+        int default_write_method_index = findMethod(
+                METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
+                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V);
+        MethodGen write_gen = new MethodGen(
+                methods[default_write_method_index], classname,
+                constantpool);
 
-        JavaClass instgen = generateInstanceGenerator();
+        InstructionList write_il = new InstructionList();
+        InstructionHandle end = write_gen.getInstructionList().getStart();
 
-        Repository.addClass(instgen);
+        write_il.append(new ILOAD(2));
+        write_il.append(new SIPUSH((short) dpth));
+        IF_ICMPNE ifcmpne = new IF_ICMPNE(null);
+        write_il.append(ifcmpne);
+        write_il.append(generateDefaultWrites(write_gen));
+        write_il.append(new GOTO(end));
+        if (super_is_ibis_serializable || super_is_serializable) {
+            InstructionHandle i = write_il.append(new ILOAD(2));
+            ifcmpne.setTarget(i);
+            write_il.append(new SIPUSH((short) dpth));
+            write_il.append(new IF_ICMPGT(end));
+            if (super_is_ibis_serializable || generator.forceGeneratedCalls()) {
+                write_il.append(new ALOAD(0));
+                write_il.append(new ALOAD(1));
+                write_il.append(new ILOAD(2));
+                write_il.append(
+                        createGeneratedDefaultWriteObjectInvocation(
+                                super_classname));
+            } else {
+                /*  Superclass is not rewritten.
+                 */
+                write_il.append(new ALOAD(1));
+                write_il.append(new ALOAD(0));
+                write_il.append(new ILOAD(2));
+                write_il.append(factory.createInvoke(
+                        TYPE_IBIS_OUTPUT_STREAM,
+                        METHOD_DEFAULT_WRITE_SERIALIZABLE_OBJECT, Type.VOID,
+                        new Type[] { Type.OBJECT, Type.INT },
+                        Constants.INVOKEVIRTUAL));
+            }
+        } else {
+            ifcmpne.setTarget(end);
+        }
+        write_il.append(write_gen.getInstructionList());
 
-        generator.markRewritten(clazz, instgen);
-    }
+        write_gen.setInstructionList(write_il);
+        write_gen.setMaxStack(MethodGen.getMaxStack(constantpool, write_il,
+                write_gen.getExceptionHandlers()));
+        write_gen.setMaxLocals();
+
+        gen.setMethodAt(write_gen.getMethod(), default_write_method_index);
+	}
+
+	private void fillInGeneratedDefaultReadObjectMethod(int dpth) {
+		InstructionHandle end;
+		IF_ICMPNE ifcmpne;
+		int default_read_method_index = findMethod(
+                METHOD_GENERATED_DEFAULT_READ_OBJECT,
+                SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V);
+        MethodGen read_gen = new MethodGen(
+                methods[default_read_method_index], classname,
+                constantpool);
+
+        InstructionList read_il = new InstructionList();
+        end = read_gen.getInstructionList().getStart();
+
+        read_il.append(new ILOAD(2));
+        read_il.append(new SIPUSH((short) dpth));
+        ifcmpne = new IF_ICMPNE(null);
+        read_il.append(ifcmpne);
+        read_il.append(generateDefaultReads(false, read_gen));
+        read_il.append(new GOTO(end));
+
+        if (super_is_ibis_serializable || super_is_serializable) {
+            InstructionHandle i = read_il.append(new ILOAD(2));
+            ifcmpne.setTarget(i);
+            read_il.append(new SIPUSH((short) dpth));
+            read_il.append(new IF_ICMPGT(end));
+            if (super_is_ibis_serializable || generator.forceGeneratedCalls()) {
+                read_il.append(new ALOAD(0));
+                read_il.append(new ALOAD(1));
+                read_il.append(new ILOAD(2));
+                read_il.append(createGeneratedDefaultReadObjectInvocation(
+                        super_classname, factory, Constants.INVOKESPECIAL));
+            } else {
+                /*  Superclass is not rewritten.
+                 */
+                read_il.append(new ALOAD(1));
+                read_il.append(new ALOAD(0));
+                read_il.append(new ILOAD(2));
+                read_il.append(factory.createInvoke(TYPE_IBIS_INPUT_STREAM,
+                        METHOD_DEFAULT_READ_SERIALIZABLE_OBJECT, Type.VOID,
+                        new Type[] { Type.OBJECT, Type.INT },
+                        Constants.INVOKEVIRTUAL));
+            }
+        } else {
+            ifcmpne.setTarget(end);
+        }
+
+        read_il.append(read_gen.getInstructionList());
+
+        read_gen.setInstructionList(read_il);
+        read_gen.setMaxStack(MethodGen.getMaxStack(constantpool, read_il,
+                read_gen.getExceptionHandlers()));
+        read_gen.setMaxLocals();
+
+        gen.setMethodAt(read_gen.getMethod(), default_read_method_index);
+	}
 }
