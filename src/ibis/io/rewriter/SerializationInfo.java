@@ -370,4 +370,24 @@ class SerializationInfo implements RewriterConstants {
         }
 		return uid;
 	}
+
+    static int findMethod(Method[] methods, String name, String signature) {
+        for (int i = 0; i < methods.length; i++) {
+            if (methods[i].getName().equals(name)
+                    && methods[i].getSignature().equals(signature)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static boolean hasWriteObject(Method[] methods) {
+        return findMethod(methods, METHOD_WRITE_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_OUTPUT_STREAM_V)
+                != -1;
+    }
+
+    static boolean hasReadObject(Method[] methods) {
+        return findMethod(methods, METHOD_READ_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_INPUT_STREAM_V)
+                != -1;
+    }
 }

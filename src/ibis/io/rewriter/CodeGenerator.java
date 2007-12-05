@@ -146,26 +146,6 @@ class CodeGenerator implements RewriterConstants {
         }
     }
 
-    private int findMethod(String name, String signature) {
-        for (int i = 0; i < methods.length; i++) {
-            if (methods[i].getName().equals(name)
-                    && methods[i].getSignature().equals(signature)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private boolean hasWriteObject() {
-        return findMethod(METHOD_WRITE_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_OUTPUT_STREAM_V)
-                != -1;
-    }
-
-    private boolean hasReadObject() {
-        return findMethod(METHOD_READ_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_INPUT_STREAM_V)
-                != -1;
-    }
-
     private Instruction createGeneratedWriteObjectInvocation(String name,
             short invmode) {
         return factory.createInvoke(name, METHOD_GENERATED_WRITE_OBJECT,
@@ -276,7 +256,7 @@ class CodeGenerator implements RewriterConstants {
             read_cons.addException(TYPE_JAVA_IO_IOEXCEPTION);
             read_cons.addException(TYPE_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION);
             gen.addMethod(read_cons.getMethod());
-        } else if (hasReadObject()) {
+        } else if (SerializationInfo.hasReadObject(methods)) {
             il = new InstructionList();
             il.append(new RETURN());
             MethodGen readobjectWrapper = new MethodGen(
@@ -1371,7 +1351,7 @@ class CodeGenerator implements RewriterConstants {
             /* Now, if the class has a readObject, call it. Otherwise,
              * read its fields, by calling generated_DefaultReadObject.
              */
-            if (hasReadObject()) {
+            if (SerializationInfo.hasReadObject(methods)) {
                 il.append(new ALOAD(2));
                 il.append(new ALOAD(1));
                 il.append(iogenFactory.createInvoke(classname,
@@ -1498,22 +1478,29 @@ class CodeGenerator implements RewriterConstants {
                                 Constants.INVOKEVIRTUAL));
             }
 
-            int read_cons_index = findMethod(METHOD_INIT,
+            int read_cons_index = SerializationInfo.findMethod(methods,
+                    METHOD_INIT, 
                     SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
             mgen = new MethodGen(methods[read_cons_index], classname,
                     constantpool);
             index = read_cons_index;
-        } else if (hasReadObject()) {
-            int read_wrapper_index = findMethod(METHOD_$READ_OBJECT_WRAPPER$,
+        } else if (SerializationInfo.hasReadObject(methods)) {
+            int read_wrapper_index = SerializationInfo.findMethod(methods,
+                    METHOD_$READ_OBJECT_WRAPPER$, 
                     SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_V);
             mgen = new MethodGen(methods[read_wrapper_index], classname,
                     constantpool);
             read_il = new InstructionList();
             index = read_wrapper_index;
         }
+        
+        /* TODO: Shouldn't there be an else clause here that fills in a method?
+         * Even an exception throwing method might be better?
+         * There is almost certainly a problem here in some corner case.
+         */
 
         if (read_il != null) {
-            if (is_externalizable || hasReadObject()) {
+            if (is_externalizable || SerializationInfo.hasReadObject(methods)) {
                 /* First, get and set IbisSerializationInputStream's idea of the current object. */
                 read_il.append(new ALOAD(1));
                 read_il.append(new ALOAD(0));
@@ -1568,7 +1555,8 @@ class CodeGenerator implements RewriterConstants {
 
 	private void fillInGeneratedWriteObjectMethod(int dpth) {
 		/* Now, produce generated_WriteObject. */
-        int write_method_index = findMethod(METHOD_GENERATED_WRITE_OBJECT,
+        int write_method_index = SerializationInfo.findMethod(methods,
+                METHOD_GENERATED_WRITE_OBJECT, 
                 SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_V);
         InstructionList write_il = new InstructionList();
         MethodGen write_gen = new MethodGen(methods[write_method_index], classname,
@@ -1600,7 +1588,7 @@ class CodeGenerator implements RewriterConstants {
          * The read constructor should either call readObject, or call
          * generated_DefaultReadObject.
          */
-        if (is_externalizable || hasWriteObject()) {
+        if (is_externalizable || SerializationInfo.hasWriteObject(methods)) {
             /* First, get and set IbisSerializationOutputStream's idea of
              * the current object.
              */
@@ -1665,8 +1653,9 @@ class CodeGenerator implements RewriterConstants {
          * }
          */
 
-        int default_write_method_index = findMethod(
-                METHOD_GENERATED_DEFAULT_WRITE_OBJECT,
+        int default_write_method_index = SerializationInfo.findMethod(
+                methods,
+                METHOD_GENERATED_DEFAULT_WRITE_OBJECT, 
                 SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM_I_V);
         MethodGen write_gen = new MethodGen(
                 methods[default_write_method_index], classname,
@@ -1721,8 +1710,9 @@ class CodeGenerator implements RewriterConstants {
 	private void fillInGeneratedDefaultReadObjectMethod(int dpth) {
 		InstructionHandle end;
 		IF_ICMPNE ifcmpne;
-		int default_read_method_index = findMethod(
-                METHOD_GENERATED_DEFAULT_READ_OBJECT,
+		int default_read_method_index = SerializationInfo.findMethod(
+                methods,
+                METHOD_GENERATED_DEFAULT_READ_OBJECT, 
                 SIGNATURE_LIBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM_I_V);
         MethodGen read_gen = new MethodGen(
                 methods[default_read_method_index], classname,
