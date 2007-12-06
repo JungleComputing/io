@@ -6,7 +6,7 @@ import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
+import java.util.Vector;
 
 /**
  * Contract: write to multiple outputstreams.
@@ -24,7 +24,7 @@ public final class OutputStreamSplitter extends OutputStream {
     private SplitterException savedException = null;
     private long bytesWritten = 0;
 
-    ArrayList<OutputStream> out = new ArrayList<OutputStream>();
+    Vector out = new Vector();
 
     private int numSenders = 0;
 
@@ -75,7 +75,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doWrite(byte[] buf, int offset, int len, int index) {
         try {
-            OutputStream o = out.get(index);
+            OutputStream o = (OutputStream)out.get(index);
             o.write(buf, offset, len);
         } catch(IOException e) {
             addException(e, index);
@@ -84,7 +84,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doFlush(int index) {
         try {
-            OutputStream o = out.get(index);
+            OutputStream o = (OutputStream)out.get(index);
             o.flush();
         } catch(IOException e) {
             addException(e, index);
@@ -93,7 +93,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doClose(int index) {
         try {
-            OutputStream o = out.get(index);
+            OutputStream o = (OutputStream)out.get(index);
             o.close();
         } catch(IOException e) {
             addException(e, index);
@@ -109,7 +109,7 @@ public final class OutputStreamSplitter extends OutputStream {
         if (savedException == null) {
             savedException = new SplitterException();
         }
-        savedException.add(out.get(index), e);
+        savedException.add((OutputStream)out.get(index), e);
         if (removeOnException) {
             out.set(index, null);
         }
@@ -156,12 +156,12 @@ public final class OutputStreamSplitter extends OutputStream {
 
         for (int i = 0; i < out.size(); i++) {
             try {
-                out.get(i).write(b);
+                ((OutputStream)out.get(i)).write(b);
             } catch (IOException e2) {
                 if (savedException == null) {
                     savedException = new SplitterException();
                 }
-                savedException.add(out.get(i), e2);
+                savedException.add((OutputStream)out.get(i), e2);
                 if (removeOnException) {
                     out.remove(i);
                     i--;
@@ -297,7 +297,7 @@ public final class OutputStreamSplitter extends OutputStream {
             if (savedException != null) {
                 if (removeOnException) {
                     for (int i = 0; i < out.size(); i++) {
-                        if (out.get(i) == null) {
+                        if ((OutputStream)out.get(i) == null) {
                             out.remove(i);
                             i--;
                         }

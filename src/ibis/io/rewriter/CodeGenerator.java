@@ -59,8 +59,6 @@ import org.apache.bcel.generic.Type;
  */
 class CodeGenerator implements RewriterConstants {
 
-	private static final String TYPE_JAVA_IO_OBJECT_INPUT = "java.io.ObjectInput";
-
 	protected JavaClass clazz;
 
     protected ClassGen gen;

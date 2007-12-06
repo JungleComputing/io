@@ -4,7 +4,7 @@ package ibis.io.jme;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
+import java.util.Vector;
 
 public class SplitterException extends IOException {
 
@@ -13,9 +13,9 @@ public class SplitterException extends IOException {
      */
     private static final long serialVersionUID = 9005051418523286737L;
 
-    private ArrayList<OutputStream> streams = new ArrayList<OutputStream>();
+    private Vector streams = new Vector();
 
-    private ArrayList<Exception> exceptions = new ArrayList<Exception>();
+    private Vector exceptions = new Vector();
 
     public SplitterException() {
         // empty constructor
@@ -35,19 +35,19 @@ public class SplitterException extends IOException {
     }
 
     public OutputStream[] getStreams() {
-        return streams.toArray(new OutputStream[0]);
+        return (OutputStream[])streams.toArray(new OutputStream[0]);
     }
 
     public Exception[] getExceptions() {
-        return exceptions.toArray(new Exception[0]);
+        return (Exception[])exceptions.toArray(new Exception[0]);
     }
 
     public OutputStream getStream(int pos) {
-        return streams.get(pos);
+        return (OutputStream)streams.get(pos);
     }
 
     public Exception getException(int pos) {
-        return exceptions.get(pos);
+        return (Exception)exceptions.get(pos);
     }
 
     public String toString() {

@@ -6,8 +6,6 @@ package ibis.io.jme;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 public abstract class Conversion {
 
@@ -177,7 +175,7 @@ public abstract class Conversion {
      */
     public static final byte[] object2byte(Object o) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        ObjectOutputStream oos = new ObjectOutputStream(new BufferedArrayOutputStream(bos, IOProperties.BUFFER_SIZE));
         oos.writeObject(o);
         oos.close();
         oos = null;
@@ -190,7 +188,7 @@ public abstract class Conversion {
     public static final Object byte2object(byte[] b) throws IOException,
             ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(b);
-        ObjectInputStream ois = new ObjectInputStream(bis);
+        ObjectInputStream ois = new ObjectInputStream(new BufferedArrayInputStream(bis, IOProperties.BUFFER_SIZE));
         Object o = ois.readObject();
         ois.close();
         return o;

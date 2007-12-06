@@ -23,8 +23,8 @@ public class SerializationBase extends IOProperties {
     protected final SerializationTimer timer
         = TIME_SERIALIZATION ? new SerializationTimer(toString()) : null;
 
-    private static Vector<SerializationTimer> timerList
-            = new Vector<SerializationTimer>();
+    private static Vector timerList
+            = new Vector();
 
     static {
         if (TIME_SERIALIZATION) {
@@ -45,18 +45,18 @@ public class SerializationBase extends IOProperties {
 
     public static void resetAllTimers() {
         synchronized (SerializationBase.class) {
-            for (SerializationTimer t : timerList) {
+            for (int i = 0; i < timerList.size(); i++) {
+            	SerializationTimer t = (SerializationTimer)timerList.elementAt(i);
                 t.reset();
             }
         }
     }
 
     public static void printAllTimers() {
-        synchronized (SerializationBase.class) {
-            for (SerializationTimer t : timerList) {
-                t.report();
-            }
-        }
+    	for (int i = 0; i < timerList.size(); i++) {
+    		SerializationTimer t = (SerializationTimer)timerList.elementAt(i);	
+    		t.report();	
+    	}
     }
 
     private void initTimer() {
@@ -124,8 +124,8 @@ public class SerializationBase extends IOProperties {
             DataInputStream in) throws IOException {
         String impl = implName(name) + "InputStream";
         try {
-            Class<?> cl = Class.forName(impl);
-            Constructor<?> cons =
+            Class cl = Class.forName(impl);
+            Constructor cons =
                     cl.getConstructor(new Class[] {DataInputStream.class});
             return (ObjectInput) cons.newInstance(new Object[] {in});
         } catch(ClassNotFoundException e) {
@@ -159,8 +159,8 @@ public class SerializationBase extends IOProperties {
             DataOutputStream out) throws IOException {
         String impl = implName(name) + "OutputStream";
         try {
-            Class<?> cl = Class.forName(impl);
-            Constructor<?> cons =
+            Class cl = Class.forName(impl);
+            Constructor cons =
                     cl.getConstructor(new Class[] {DataOutputStream.class});
             return (ObjectOutput) cons.newInstance(new Object[] {out});
         } catch(ClassNotFoundException e) {

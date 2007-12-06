@@ -1467,7 +1467,7 @@ public class DeepCopy extends IOProperties {
      * @param args ignored.
      */
     public static void main(String[] args) {
-        Hashtable<String, Hashtable<?,?>> h = new Hashtable<String, Hashtable<?,?>>();
+        Hashtable h = new Hashtable();
         String[] strings = new String[10];
 
         for (int i = 0; i < strings.length; i++) {
@@ -1475,10 +1475,10 @@ public class DeepCopy extends IOProperties {
             h.put(strings[i], h);
         }
 
-        Hashtable<?,?> hcp = (Hashtable<?,?>) deepCopy(h);
+        Hashtable hcp = (Hashtable) deepCopy(h);
 
         for (int i = 0; i < strings.length; i++) {
-            Hashtable<?,?> o = (Hashtable<?,?>) hcp.get(strings[i]);
+            Hashtable o = (Hashtable) hcp.get(strings[i]);
             if (o != hcp) {
                 System.out.println("Error " + i);
                 System.exit(1);

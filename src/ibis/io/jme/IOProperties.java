@@ -118,7 +118,7 @@ public class IOProperties implements Constants {
     static {
         properties = new TypedProperties(getDefaultProperties());
         properties.checkProperties(PREFIX,
-                getPropertyNames().toArray(new String[0]), null, true);
+                (String[])getPropertyNames().toArray(new String[0]), null, true);
     }
 
     static final boolean DEBUG = properties.getBooleanProperty(s_debug, false);
@@ -143,7 +143,8 @@ public class IOProperties implements Constants {
     public static Properties getHardcodedProperties() {
         Properties properties = new Properties();
 
-        for (String[] element : propertiesList) {
+        for (int i = 0; i < propertiesList.length; i++) {
+        	String[] element = propertiesList[i];
             if (element[1] != null) {
                 properties.setProperty(element[0], element[1]);
             }
@@ -158,10 +159,11 @@ public class IOProperties implements Constants {
      * @return
      *          the name/description map.
      */
-    public static Map<String, String> getDescriptions() {
-        Map<String, String> result = new LinkedHashMap<String, String>();
+    public static Map getDescriptions() {
+        Map result = new LinkedHashMap();
 
-        for (String[] element : propertiesList) {
+        for (int i = 0; i < propertiesList.length; i++) {
+        	String[] element = propertiesList[i];
             result.put(element[0], element[2]);
         }
 
@@ -171,9 +173,10 @@ public class IOProperties implements Constants {
     /**
      * Returns a list of recognized properties.
      */
-    public static List<String> getPropertyNames() {
-        ArrayList<String> result = new ArrayList<String>();
-        for (String[] element : propertiesList) {
+    public static List getPropertyNames() {
+        ArrayList result = new ArrayList();
+        for (int i = 0; i < propertiesList.length; i++) {
+        	String[] element = propertiesList[i];
             result.add(element[0]);
         }
         return result;
@@ -212,7 +215,7 @@ public class IOProperties implements Constants {
     }
 
     private static void addProperties(Properties props, Properties p) {
-        for (Enumeration<?> e = p.propertyNames(); e.hasMoreElements();) {
+        for (Enumeration e = p.propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
             String value = p.getProperty(key);
             props.setProperty(key, value);
