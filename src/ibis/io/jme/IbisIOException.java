@@ -12,14 +12,4 @@ public class IbisIOException extends IOException {
     public IbisIOException(String message) {
         super(message);
     }
-
-    public IbisIOException(Throwable cause) {
-        super();
-        initCause(cause);
-    }
-
-    public IbisIOException(String message, Throwable cause) {
-        super(message);
-        initCause(cause);
-    }
 }

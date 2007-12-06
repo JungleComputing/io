@@ -26,8 +26,8 @@ public class SplitterException extends IOException {
             System.err.println("AAA, stream was already in splitter exception");
         }
 
-        streams.add(s);
-        exceptions.add(e);
+        streams.addElement(s);
+        exceptions.addElement(e);
     }
 
     public int count() {
@@ -35,25 +35,33 @@ public class SplitterException extends IOException {
     }
 
     public OutputStream[] getStreams() {
-        return (OutputStream[])streams.toArray(new OutputStream[0]);
+    	OutputStream[] ret = new OutputStream[streams.size()];
+    	for (int i = 0; i < streams.size(); i++) {
+    		ret[i] = (OutputStream)streams.elementAt(i);
+    	}
+        return ret;
     }
 
     public Exception[] getExceptions() {
-        return (Exception[])exceptions.toArray(new Exception[0]);
+    	Exception[] ret = new Exception[exceptions.size()];
+    	for (int i = 0; i < exceptions.size(); i++) {
+    		ret[i] = (Exception)exceptions.elementAt(i);
+    	}
+        return ret;
     }
 
     public OutputStream getStream(int pos) {
-        return (OutputStream)streams.get(pos);
+        return (OutputStream)streams.elementAt(pos);
     }
 
     public Exception getException(int pos) {
-        return (Exception)exceptions.get(pos);
+        return (Exception)exceptions.elementAt(pos);
     }
 
     public String toString() {
         String res = "got " + streams.size() + " exceptions: ";
         for (int i = 0; i < streams.size(); i++) {
-            res += "   " + exceptions.get(i) + "\n";
+            res += "   " + exceptions.elementAt(i) + "\n";
         }
 
         return res;
@@ -64,8 +72,8 @@ public class SplitterException extends IOException {
      */
     public void printStackTrace() {
         for (int i = 0; i < streams.size(); i++) {
-            System.err.println("Exception: " + exceptions.get(i));
-            ((Exception) exceptions.get(i)).printStackTrace();
+            System.err.println("Exception: " + exceptions.elementAt(i));
+            ((Exception) exceptions.elementAt(i)).printStackTrace();
         }
     }
 }

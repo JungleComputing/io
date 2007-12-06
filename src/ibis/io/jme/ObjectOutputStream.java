@@ -5,9 +5,7 @@ package ibis.io.jme;
 import ibis.io.Replacer;
 
 import java.io.IOException;
-import java.io.NotActiveException;
-import java.io.ObjectOutput;
-import java.io.ObjectStreamClass;
+import java.io.OutputStream;
 import java.util.Hashtable;
 
 /**
@@ -36,6 +34,7 @@ public class ObjectOutputStream
 
     static {
         if (STATS_OBJECTS) {
+        	/* TODO: Setup a shutdown hook system
             Runtime.getRuntime().addShutdownHook(
                     new Thread("IbisSerializationOutputStream ShutdownHook") {
                         public void run() {
@@ -60,6 +59,7 @@ public class ObjectOutputStream
                             }
                         }
                     });
+                    */
             System.out.println("IbisSerializationOutputStream.STATS_OBJECTS "
                     + "enabled");
             statSendObjects = new Hashtable();
@@ -987,7 +987,7 @@ public class ObjectOutputStream
         return objectStream;
     }
 
-    private class JavaObjectOutputStream extends java.io.OutputStream implements ObjectOutput {
+    private class JavaObjectOutputStream extends OutputStream implements ObjectOutput {
 
         ObjectOutputStream ibisStream;
 
@@ -1021,7 +1021,7 @@ public class ObjectOutputStream
                     logger.debug("generated_DefaultWriteObject, class = "
                             + clazz.getName() + ", level = " + current_level);
                 }
-                ((JMESerializable) ref).generated_DefaultWriteObject(ibisStream,
+                ((JMESerializable) ref).generated_JME_DefaultWriteObject(ibisStream,
                         current_level);
             } else {
                 throw new NotSerializableException("Not Serializable : "
@@ -1064,16 +1064,6 @@ public class ObjectOutputStream
 
         protected void writeStreamHeader() {
             /* ignored. */
-        }
-
-        protected void writeClassDescriptor(ObjectStreamClass desc)
-                throws IOException {
-            Class cl = desc.forClass();
-            if (cl == null) {
-                ibisStream.writeHandle(NUL_HANDLE);
-                return;
-            }
-            ibisStream.writeClass(cl);
         }
 
         /* annotateClass does not have to be redefined: it is empty in the
@@ -1161,6 +1151,146 @@ public class ObjectOutputStream
 			char[] chars = new char[s.length()];
 			s.getChars(0, s.length()-1, chars, 0);
 			ibisStream.writeArray(chars);
+		}
+
+		public boolean reInitOnNewConnection() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		public void realClose() throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void reset(boolean cleartypes) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public String serializationImplName() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		public void setReplacer(Replacer replacer) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void statistics() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(Object[] val) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(Object[] val, int off, int len) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeString(String val) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(boolean[] source, int offset, int length) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(byte[] source, int offset, int length) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(char[] source, int offset, int length) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(short[] source, int offset, int length) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(int[] source, int offset, int length) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(long[] source, int offset, int length) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(float[] source, int offset, int length) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(double[] source, int offset, int length) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(boolean[] source) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(byte[] source) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(char[] source) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(short[] source) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(int[] source) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(long[] source) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(float[] source) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeArray(double[] source) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeByte(byte value) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeChar(char value) throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void writeShort(short value) throws IOException {
+			// TODO Auto-generated method stub
+			
 		}
 
     }

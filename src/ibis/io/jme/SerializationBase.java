@@ -2,8 +2,6 @@
 
 package ibis.io.jme;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
 import java.util.Vector;
 
@@ -30,12 +28,14 @@ public class SerializationBase extends IOProperties {
         if (TIME_SERIALIZATION) {
             System.out.println("SerializationOutputStream.TIME_SERIALIZATION "
                     + "enabled");
+            /* TODO: Setup a shutdown system
             Runtime.getRuntime().addShutdownHook(
                     new Thread("SerializationOutputStream ShutdownHook") {
                         public void run() {
                             printAllTimers();
                         }
                     });
+            */
         }
     }
 
@@ -62,7 +62,7 @@ public class SerializationBase extends IOProperties {
     private void initTimer() {
         if (TIME_SERIALIZATION) {
             synchronized (SerializationBase.class) {
-                timerList.add(timer);
+                timerList.addElement(timer);
             }
         }
     }
@@ -115,72 +115,42 @@ public class SerializationBase extends IOProperties {
     }
 
     /**
-     * Creates a {@link SerializationInput} as specified by the name.
+     * Creates a {@link ObjectInput} as specified by the name.
      * @param name the nickname for this serialization type.
      * @param in   the underlying input stream.
      * @return the serialization input stream.
      */
     public static ObjectInput createSerializationInput(String name,
             DataInputStream in) throws IOException {
-        String impl = implName(name) + "InputStream";
-        try {
-            Class cl = Class.forName(impl);
-            Constructor cons =
-                    cl.getConstructor(new Class[] {DataInputStream.class});
-            return (ObjectInput) cons.newInstance(new Object[] {in});
-        } catch(ClassNotFoundException e) {
-            throw new IbisIOException("No such class: " + impl, e);
-        } catch(NoSuchMethodException e) {
-            throw new IbisIOException(
-                    "No suitable constructor in class: " + impl, e);
-        } catch(IllegalArgumentException e) {
-            throw new IbisIOException(
-                    "No suitable constructor in class: " + impl, e);
-        } catch(InstantiationException e) {
-            throw new IbisIOException("class " + impl + " is abstract", e);
-        } catch(InvocationTargetException e) {
-            throw new IbisIOException(
-                    "constructor of " + impl + " threw an exception", e.getCause());
-        } catch(IllegalAccessException e) {
-            throw new IbisIOException(
-                    "access to constructor of " + impl + " is denied", e);
-        } catch(Throwable e) {
-            throw new IbisIOException("got unexpected error", e);
+        if (name == null || name.equals("jme")) {
+            return new ObjectInputStream(in);
         }
+        if (name.equals("data")) {
+            return new DataSerializationInputStream(in);
+        }
+        if (name.equals("byte")) {
+            return new ByteSerializationInputStream(in);
+        }
+        throw new SerializationError("Unknown serialization system: " + name);
     }
 
     /**
-     * Creates a {@link SerializationOutput} as specified by the name.
+     * Creates a {@link ObjectOutput} as specified by the name.
      * @param name the nickname for this serialization type.
      * @param out   the underlying output stream.
      * @return the serialization output stream.
      */
     public static ObjectOutput createSerializationOutput(String name,
             DataOutputStream out) throws IOException {
-        String impl = implName(name) + "OutputStream";
-        try {
-            Class cl = Class.forName(impl);
-            Constructor cons =
-                    cl.getConstructor(new Class[] {DataOutputStream.class});
-            return (ObjectOutput) cons.newInstance(new Object[] {out});
-        } catch(ClassNotFoundException e) {
-            throw new IbisIOException("No such class: " + impl, e);
-        } catch(NoSuchMethodException e) {
-            throw new IbisIOException(
-                    "No suitable constructor in class: " + impl, e);
-        } catch(IllegalArgumentException e) {
-            throw new IbisIOException(
-                    "No suitable constructor in class: " + impl, e);
-        } catch(InstantiationException e) {
-            throw new IbisIOException("class " + impl + " is abstract", e);
-        } catch(InvocationTargetException e) {
-            throw new IbisIOException(
-                    "constructor of " + impl + " threw an exception", e.getCause());
-        } catch(IllegalAccessException e) {
-            throw new IbisIOException(
-                    "access to constructor of " + impl + " is denied", e);
-        } catch(Throwable e) {
-            throw new IbisIOException("got unexpected error", e);
+        if (name == null || name.equals("jme")) {
+            return new ObjectOutputStream(out);
         }
+        if (name.equals("data")) {
+            return new DataSerializationOutputStream(out);
+        }
+        if (name.equals("byte")) {
+            return new ByteSerializationOutputStream(out);
+        }
+        throw new SerializationError("Unknown serialization system: " + name);
     }
 }

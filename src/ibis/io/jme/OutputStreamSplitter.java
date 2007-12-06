@@ -2,8 +2,6 @@
 
 package ibis.io.jme;
 
-import ibis.util.ThreadPool;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Vector;
@@ -75,7 +73,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doWrite(byte[] buf, int offset, int len, int index) {
         try {
-            OutputStream o = (OutputStream)out.get(index);
+            OutputStream o = (OutputStream)out.elementAt(index);
             o.write(buf, offset, len);
         } catch(IOException e) {
             addException(e, index);
@@ -84,7 +82,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doFlush(int index) {
         try {
-            OutputStream o = (OutputStream)out.get(index);
+            OutputStream o = (OutputStream)out.elementAt(index);
             o.flush();
         } catch(IOException e) {
             addException(e, index);
@@ -93,7 +91,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doClose(int index) {
         try {
-            OutputStream o = (OutputStream)out.get(index);
+            OutputStream o = (OutputStream)out.elementAt(index);
             o.close();
         } catch(IOException e) {
             addException(e, index);
@@ -109,9 +107,9 @@ public final class OutputStreamSplitter extends OutputStream {
         if (savedException == null) {
             savedException = new SplitterException();
         }
-        savedException.add((OutputStream)out.get(index), e);
+        savedException.add((OutputStream)out.elementAt(index), e);
         if (removeOnException) {
-            out.set(index, null);
+            out.setElementAt(null, index);
         }
     }
 
@@ -126,7 +124,7 @@ public final class OutputStreamSplitter extends OutputStream {
     }
 
     public void add(OutputStream s) {
-        out.add(s);
+        out.addElement(s);
     }
 
     public void remove(OutputStream s) throws IOException {
@@ -136,7 +134,7 @@ public final class OutputStreamSplitter extends OutputStream {
             throw new IOException("Removing unknown stream from splitter.");
         }
 
-        out.remove(i);
+        out.removeElementAt(i);
     }
 
     public void write(int b) throws IOException {
@@ -156,14 +154,14 @@ public final class OutputStreamSplitter extends OutputStream {
 
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((OutputStream)out.get(i)).write(b);
+                ((OutputStream)out.elementAt(i)).write(b);
             } catch (IOException e2) {
                 if (savedException == null) {
                     savedException = new SplitterException();
                 }
-                savedException.add((OutputStream)out.get(i), e2);
+                savedException.add((OutputStream)out.elementAt(i), e2);
                 if (removeOnException) {
-                    out.remove(i);
+                    out.removeElementAt(i);
                     i--;
                 }
             }
@@ -297,8 +295,8 @@ public final class OutputStreamSplitter extends OutputStream {
             if (savedException != null) {
                 if (removeOnException) {
                     for (int i = 0; i < out.size(); i++) {
-                        if ((OutputStream)out.get(i) == null) {
-                            out.remove(i);
+                        if ((OutputStream)out.elementAt(i) == null) {
+                            out.removeElementAt(i);
                             i--;
                         }
                     }

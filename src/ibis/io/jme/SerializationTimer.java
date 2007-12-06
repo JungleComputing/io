@@ -2,8 +2,6 @@
 
 package ibis.io.jme;
 
-import ibis.util.Timer;
-
 public class SerializationTimer {
 
     private final String name;

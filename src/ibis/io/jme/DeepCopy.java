@@ -3,17 +3,15 @@
 package ibis.io.jme;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.Hashtable;
 
 /**
  * Exports a single static method that creates a deep copy of any
  * serializable object.
  */
-public class DeepCopy extends IOProperties {
+public class DeepCopy {
 
     private static final String serialization
-            = properties.getProperty(s_deepcopy_ser, "ibis");
+            = IOProperties.properties.getProperty(IOProperties.s_deepcopy_ser, "ibis");
 
     /** Prevent creation of a DeepCopy object. */
     private DeepCopy() {
@@ -1449,7 +1447,7 @@ public class DeepCopy extends IOProperties {
                         // Should not happen
                         // System.out.println("Got exception: " + e);
                         // e.printStackTrace();
-                        throw new Error("Got exception: ", e);
+                        throw new Error("Got exception: " + e);
                     }
                 }
             };
@@ -1458,32 +1456,7 @@ public class DeepCopy extends IOProperties {
             return (Serializable) ser_input.readObject();
         } catch(Exception e) {
             // Should not happen
-            throw new Error("Got exception: ", e);
+            throw new Error("Got exception: " + e);
         }
-    }
-
-    /**
-     * A little testing ...
-     * @param args ignored.
-     */
-    public static void main(String[] args) {
-        Hashtable h = new Hashtable();
-        String[] strings = new String[10];
-
-        for (int i = 0; i < strings.length; i++) {
-            strings[i] = "" + i;
-            h.put(strings[i], h);
-        }
-
-        Hashtable hcp = (Hashtable) deepCopy(h);
-
-        for (int i = 0; i < strings.length; i++) {
-            Hashtable o = (Hashtable) hcp.get(strings[i]);
-            if (o != hcp) {
-                System.out.println("Error " + i);
-                System.exit(1);
-            }
-        }
-        System.out.println("OK");
     }
 }

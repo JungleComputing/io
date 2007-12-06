@@ -33,12 +33,12 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
         }
     }
 
-    private static class IbisSerializableWriter extends IbisWriter {
+    private static class JMESerializableWriter extends IbisWriter {
         void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
-            ((JMESerializable) ref).generated_WriteObject(out);
+            ((JMESerializable) ref).generated_JME_WriteObject(out);
         }
     }
 
@@ -48,7 +48,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
             out.push_current_object(ref, 0);
-            ((java.io.Externalizable) ref).writeExternal(
+            ((Externalizable) ref).writeExternal(
                     out.getJavaObjectOutputStream());
             out.pop_current_object();
         }
@@ -72,15 +72,6 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
         }
     }
 
-    private class EnumWriter extends IbisWriter {
-        void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
-                throws IOException {
-            super.writeHeader(out, ref, t, hashCode, unshared);
-            out.writeUTF(((Enum) ref).name());
-        }
-    }
-
     private static class NotSerializableWriter extends IbisWriter {
         void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
@@ -90,7 +81,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
         }
     }
 
-    private static class IbisSerializableReader extends IbisReader {
+    private static class JMESerializableReader extends IbisReader {
         Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
@@ -127,23 +118,6 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
         }
     }
 
-    private static class EnumReader extends IbisReader {
-        Object readObject(ObjectInputStream in,
-                AlternativeTypeInfo t, int typeHandle)
-                throws IOException, ClassNotFoundException {
-            String o = in.readUTF();
-            Object obj;
-            try {
-                obj = Enum.valueOf((Class)t.clazz, o);
-            } catch(Throwable e) {
-                throw new IOException("Exception while reading enumeration"
-                        + e);
-            }
-            in.addObjectToCycleCheck(obj);
-            return obj;
-        }
-    }
-
     private static class ExternalizableReader extends IbisReader {
         Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
@@ -156,7 +130,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Caught exception, now rethrow as ClassNotFound", e);
                 }
-                throw new ClassNotFoundException("Could not instantiate", e);
+                throw new ClassNotFoundException("Could not instantiate");
             }
             in.addObjectToCycleCheck(obj);
             in.push_current_object(obj, 0);
@@ -230,7 +204,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     int level;
 
     /** serialPersistentFields of the class, if the class declares them. */
-    java.io.ObjectStreamField[] serial_persistent_fields = null;
+    ObjectStreamField[] serial_persistent_fields = null;
 
     /** Set if the class has a <code>readObject</code> method. */
     boolean hasReadObject;
@@ -310,12 +284,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             String classname) throws ClassNotFoundException {
         Class type = null;
 
-        try {
-            type = Class.forName(classname);
-        } catch (ClassNotFoundException e) {
-            type = Thread.currentThread().getContextClassLoader().loadClass(
-                    classname);
-        }
+        type = Class.forName(classname);
 
         return getAlternativeTypeInfo(type);
     }
@@ -338,7 +307,8 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
             // TODO: Implement in some other way? getSerialPersistentFields();
 
-            /* see if the supertype is serializable */
+            /* see if the supertype is serializable 
+				TODO: Some other way?
             Class superClass = clazz.getSuperclass();
 
             if (superClass != null) {
@@ -351,6 +321,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                     level = 1;
                 }
             }
+            */
 
             /* Now see if it has a writeObject/readObject. */
             /* TODO: How to handle ?
@@ -375,7 +346,9 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             // We cannot use "instanceof ibis.io.Serializable", because that
             // would also return true if a parent class implements
             // ibis.io.Serializable, which is not good enough.
-
+        	/* TODO:
+        	 * The generator needs to stick a flag in the class or something
+        	 * since we can't get the interfaces.
             Class[] intfs = clazz.getInterfaces();
 
             for (int i = 0; i < intfs.length; i++) {
@@ -383,6 +356,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                     isIbisSerializable = true;
                 }
             }
+            */
 
             isSerializable = ibis.io.jme.JMESerializable.class.isAssignableFrom(clazz);
 
@@ -399,18 +373,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 try {
                     gen_class = Class.forName(name);
                 } catch (ClassNotFoundException e) {
-                    // The loading of the class failed.
-                    // Maybe, Ibis was loaded using the primordial classloader
-                    // and the needed class was not.
-                    try {
-                        gen_class = Thread.currentThread().getContextClassLoader()
-                                .loadClass(name);
-                    } catch (Exception e1) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Class " + name + " not found!");
-                        }
                         gen = null;
-                    }
                 }
                 if (gen_class != null) {
                     try {
@@ -437,7 +400,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             return new ArrayWriter();
         }
         if (isIbisSerializable) {
-            return new IbisSerializableWriter();
+            return new JMESerializableWriter();
         }
         if (isExternalizable) {
             return new ExternalizableWriter();
@@ -456,7 +419,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             return new ArrayReader();
         }
         if (gen != null) {
-            return new IbisSerializableReader();
+            return new JMESerializableReader();
         }
         if (isExternalizable) {
             return new ExternalizableReader();

@@ -29,6 +29,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
             nonRewritten = new Hashtable();
             System.out.println("ObjectInputStream.STATS_NONREWRITTEN"
                     + " enabled");
+            /* TODO: Add shutdown hook system
             Runtime.getRuntime().addShutdownHook(
                     new Thread("ObjectInputStream ShutdownHook") {
                         public void run() {
@@ -37,10 +38,9 @@ public class ObjectInputStream extends DataSerializationInputStream {
                             System.out.println(nonRewritten);
                         }
                     });
+            */
         }
     }
-
-    private static ClassLoader customClassLoader;
 
     /** List of objects, for cycle checking. */
     private IbisVector objects;
@@ -121,20 +121,6 @@ public class ObjectInputStream extends DataSerializationInputStream {
     /** <code>AlternativeTypeInfo</code> for <code>double</code> arrays. */
     private static AlternativeTypeInfo doubleArrayInfo
             = AlternativeTypeInfo.getAlternativeTypeInfo(classDoubleArray);
-
-    static {
-        String clName = System.getProperty(IOProperties.s_classloader);
-        if (clName != null) {
-            //we try to instanciate it
-            try {
-                Class classDefinition = Class.forName(clName);
-                customClassLoader = (ClassLoader) classDefinition.newInstance();
-            } catch (Exception e) {
-                logger.warn("Warning: could not find or load custom "
-                        + "classloader " + clName, e);
-            }
-        }
-    }
 
     /**
      * Constructor with a <code>DataInputStream</code>.
@@ -774,9 +760,13 @@ public class ObjectInputStream extends DataSerializationInputStream {
             return readArrayDouble();
         default:
             int len = readInt();
+        /* TODO:
+         * We need to use a generator here because we
+         * can't reflect an instance of the array.
             Object ref = java.lang.reflect.Array.newInstance(
                     clazz.getComponentType(), len);
             addObjectToCycleCheck(ref);
+            
 
             for (int i = 0; i < len; i++) {
                 Object o = doReadObject(false);
@@ -784,6 +774,8 @@ public class ObjectInputStream extends DataSerializationInputStream {
             }
 
             return ref;
+            */
+        	throw new NotSerializableException("Arrays not yet supported.");
         }
     }
 
@@ -803,71 +795,46 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     Class getClassFromName(String typeName)
             throws ClassNotFoundException {
-        try {
-            return Class.forName(typeName);
-        } catch (ClassNotFoundException e) {
-            try {
-                if (DEBUG && logger.isDebugEnabled()) {
-                    logger.debug("Could not load class " + typeName
-                            + " using Class.forName(), trying "
-                            + "Thread.currentThread()."
-                            + "getContextClassLoader().loadClass()");
-                    logger.debug("Default class loader is "
-                            + this.getClass().getClassLoader());
-                    logger.debug("now trying "
-                            + Thread.currentThread().getContextClassLoader());
-                }
-                return Thread.currentThread().getContextClassLoader()
-                        .loadClass(typeName);
-            } catch (ClassNotFoundException e2) {
-                int dim = 0;
+    	try {
+    		return Class.forName(typeName);
+    	} catch (ClassNotFoundException e) {
+    		int dim = 0;
 
-                /* Some classloaders are not able to load array classes.
-                 * Therefore, if the name
-                 * describes an array, try again with the base type.
-                 */
-                if (typeName.length() > 0 && typeName.charAt(0) == '[') {
-                    char[] s = typeName.toCharArray();
-                    while (dim < s.length && s[dim] == '[') {
-                        dim++;
-                    }
-                    int begin = dim;
-                    int end = s.length;
-                    if (dim < s.length && s[dim] == 'L') {
-                        begin++;
-                    }
-                    if (s[end - 1] == ';') {
-                        end--;
-                    }
-                    typeName = typeName.substring(begin, end);
+    		/* Some classloaders are not able to load array classes.
+    		 * Therefore, if the name
+    		 * describes an array, try again with the base type.
+    		 */
+    		if (typeName.length() > 0 && typeName.charAt(0) == '[') {
+    			char[] s = typeName.toCharArray();
+    			while (dim < s.length && s[dim] == '[') {
+    				dim++;
+    			}
+    			int begin = dim;
+    			int end = s.length;
+    			if (dim < s.length && s[dim] == 'L') {
+    				begin++;
+    			}
+    			if (s[end - 1] == ';') {
+    				end--;
+    			}
+    			typeName = typeName.substring(begin, end);
 
-                    int dims[] = new int[dim];
-                    for (int i = 0; i < dim; i++)
-                        dims[i] = 0;
+    			int dims[] = new int[dim];
+    			for (int i = 0; i < dim; i++)
+    				dims[i] = 0;
 
-                    /* Now try to load the base class, create an array
-                     * from it and then return its class.
-                     */
+    			/* Now try to load the base class, create an array
+    			 * from it and then return its class.
+    			 */
+    			/* TODO: We need to use a generator method here.
+    			 * because we do not have the reflect Throw for now.
                     return java.lang.reflect.Array.newInstance(
                             getClassFromName(typeName), dims).getClass();
-                }
-                return loadClassFromCustomCL(typeName);
-            }
-        }
-    }
-
-    private Class loadClassFromCustomCL(String className)
-            throws ClassNotFoundException {
-        if (DEBUG && logger.isDebugEnabled()) {
-            System.out.println("loadClassTest " + className);
-        }
-        if (customClassLoader == null) {
-            throw new ClassNotFoundException(className);
-        }
-        if (DEBUG && logger.isDebugEnabled()) {
-            System.out.println("******* Calling custom classloader");
-        }
-        return customClassLoader.loadClass(className);
+    			 */
+    			throw e;
+    		}
+    		throw new ClassNotFoundException(typeName);
+    	}
     }
 
     /**
@@ -1306,13 +1273,10 @@ public class ObjectInputStream extends DataSerializationInputStream {
             // ignored
         }
 
-        protected java.io.ObjectStreamClass readClassDescriptor()
+        protected ObjectStreamClass readClassDescriptor()
                 throws IOException, ClassNotFoundException {
             Class cl = ibisStream.readClass();
-            if (cl == null) {
-                return null;
-            }
-            return java.io.ObjectStreamClass.lookup(cl);
+            return new ObjectStreamClass(cl);
         }
 
         public void readFully(byte[] b) throws IOException {
@@ -1333,15 +1297,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
             return doReadObject(true);
         }
 
-        public void registerValidation(java.io.ObjectInputValidation obj,
-                int prio) throws NotActiveException, InvalidObjectException {
-            if (current_object != obj) {
-                throw new NotActiveException("not in readObject");
-            }
-            throw new SerializationError("registerValidation not implemented");
-        }
-
-        public Class resolveClass(java.io.ObjectStreamClass desc)
+        public Class resolveClass(ObjectStreamClass desc)
                   throws IOException, ClassNotFoundException {
                 return desc.forClass();
         }
@@ -1426,7 +1382,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
                     logger.debug("generated_DefaultReadObject, class = " + type
                             + ", level = " + current_level);
                 }
-                ((JMESerializable) ref).generated_DefaultReadObject(ibisStream,
+                ((JMESerializable) ref).generated_JME_DefaultReadObject(ibisStream,
                         current_level);
             } else {
                 throw new NotSerializableException("Not Serializable : "

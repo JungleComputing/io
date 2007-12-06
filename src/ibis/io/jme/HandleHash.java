@@ -2,8 +2,6 @@
 
 package ibis.io.jme;
 
-import ibis.util.Timer;
-
 /**
  * A hash table that aims for speed for pairs (Object, int). This one is
  * specially made for (object, handle) pairs.
@@ -55,13 +53,13 @@ public final class HandleHash extends IOProperties {
     private int mapsize;
 
     // if (TIMINGS)
-    private ibis.util.Timer t_insert;
+    private Timer t_insert;
 
-    private ibis.util.Timer t_find;
+    private Timer t_find;
 
-    private ibis.util.Timer t_rebuild;
+    private Timer t_rebuild;
 
-    private ibis.util.Timer t_growbucket;
+    private Timer t_growbucket;
 
     /** Initial size of buckets. */
     private int initSize;
@@ -103,6 +101,7 @@ public final class HandleHash extends IOProperties {
             t_rebuild = Timer.createTimer();
             t_growbucket = Timer.createTimer();
         }
+        /* TODO: Setup a shutdown system
         if (STATS || TIMINGS) {
             Runtime.getRuntime().addShutdownHook(
                     new Thread("HandleHash ShutdownHook") {
@@ -111,6 +110,7 @@ public final class HandleHash extends IOProperties {
                         }
                     });
         }
+        */
     }
 
     private void init(int sz) {

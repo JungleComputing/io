@@ -2,8 +2,6 @@
 
 package ibis.io.jme;
 
-import ibis.util.Timer;
-
 /**
  * A hash table that aims for speed for pairs (Object, int).
  *
@@ -55,13 +53,13 @@ final class IbisHash extends IOProperties {
     private long new_buckets;
 
     // if (TIMINGS)
-    private ibis.util.Timer t_insert;
+    private Timer t_insert;
 
-    private ibis.util.Timer t_find;
+    private Timer t_find;
 
-    private ibis.util.Timer t_rebuild;
+    private Timer t_rebuild;
 
-    private ibis.util.Timer t_clear;
+    private Timer t_clear;
 
     private int offset = 0;
 
@@ -98,7 +96,7 @@ final class IbisHash extends IOProperties {
             t_rebuild = Timer.createTimer();
             t_clear = Timer.createTimer();
         }
-
+        /* TODO: Setup a shutdown hook system
         if (STATS || TIMINGS) {
             Runtime.getRuntime().addShutdownHook(
                     new Thread("IbisHash ShutdownHook") {
@@ -107,6 +105,7 @@ final class IbisHash extends IOProperties {
                         }
                     });
         }
+        */
     }
 
     private void newBucketSet(int sz) {
