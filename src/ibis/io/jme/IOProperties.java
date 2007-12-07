@@ -2,20 +2,14 @@
 
 package ibis.io.jme;
 
-import ibis.util.TypedProperties;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.Vector;
 
+import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.Priority;
 
 /**
  * Collects all system properties used by the ibis.io package.
@@ -31,8 +25,20 @@ public class IOProperties implements Constants {
     /** Property name of the property file. */
     public static final String PROPERTIES_FILE = PREFIX + "properties.file";
     
-    static final Logger logger = Logger.getLogger("ibis.io");
-     
+    static final Logger logger;
+    
+	static {
+		logger = Logger.getInstance("ibis.io.jme");
+	    PatternLayout layout = new PatternLayout();
+	    ConsoleAppender appender = new ConsoleAppender(layout);
+
+		logger.addAppender(appender);
+		
+		if (IOProperties.DEBUG) {
+			logger.setPriority(Priority.DEBUG);
+			logger.debug("Logger Initialized.");
+		}
+	}
 
     static final String s_stats_nonrewritten = PREFIX
             + "stats.nonrewritten";
@@ -118,7 +124,7 @@ public class IOProperties implements Constants {
     static {
         properties = new TypedProperties(getDefaultProperties());
         properties.checkProperties(PREFIX,
-                (String[])getPropertyNames().toArray(new String[0]), null, true);
+        		getPropertyNames(), null, true);
     }
 
     static final boolean DEBUG = properties.getBooleanProperty(s_debug, false);
@@ -154,13 +160,13 @@ public class IOProperties implements Constants {
     }
 
     /**
-     * Returns a map mapping hard-coded property names to their descriptions.
+     * Returns a Hashtable mapping hard-coded property names to their descriptions.
      * 
      * @return
-     *          the name/description map.
+     *          the name/description Hashtable.
      */
-    public static Map getDescriptions() {
-        Map result = new LinkedHashMap();
+    public static Hashtable getDescriptions() {
+        Hashtable result = new Hashtable();
 
         for (int i = 0; i < propertiesList.length; i++) {
         	String[] element = propertiesList[i];
@@ -171,47 +177,15 @@ public class IOProperties implements Constants {
     }
 
     /**
-     * Returns a list of recognized properties.
+     * Returns a Vector of recognized properties.
      */
-    public static List getPropertyNames() {
-        ArrayList result = new ArrayList();
+    public static Vector getPropertyNames() {
+        Vector result = new Vector();
         for (int i = 0; i < propertiesList.length; i++) {
         	String[] element = propertiesList[i];
-            result.add(element[0]);
+            result.addElement(element[0]);
         }
         return result;
-    }
-
-    private static Properties getPropertyFile(String file) {
-
-        InputStream in = null;
-
-        try {
-            in = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            // ignored
-        }
-
-        if (in == null) {
-            ClassLoader loader = ClassLoader.getSystemClassLoader();
-            in = loader.getResourceAsStream(file);
-            if (in == null) {
-                return null;
-            }
-        }
-
-        try {
-            Properties p = new Properties();
-            p.load(in);
-            return p;
-        } catch (IOException e) {
-            try {
-                in.close();
-            } catch (Exception x) {
-                // ignore
-            }
-        }
-        return null;
     }
 
     private static void addProperties(Properties props, Properties p) {
@@ -226,46 +200,10 @@ public class IOProperties implements Constants {
 
         Properties props = new Properties();
         
-        // Get the properties from the commandline. 
-        Properties system = System.getProperties();
-
-        // Check what property file we should load.
-        String file = system.getProperty(PROPERTIES_FILE,
-                PROPERTIES_FILENAME);
-
-        // If the file is not explicitly set to null, we try to load it.
-        // First try the filename as is, if this fails try with the
-        // user home directory prepended.
-        if (file != null) {
-            Properties fromFile = getPropertyFile(file);
-            if (fromFile != null) {
-                addProperties(props, fromFile);
-            } else {
-                String homeFn = System.getProperty("user.home")
-                    + System.getProperty("file.separator") + file;
-                fromFile = getPropertyFile(homeFn);
-                
-                if (fromFile == null) { 
-                    if (! file.equals(PROPERTIES_FILENAME)) { 
-                        // If we fail to load the user specified file,
-                        // we give an error, since only the default file
-                        // may fail silently.                     
-                        System.err.println("User specified preferences \""
-                                + file + "\" not found!");
-                    }                                            
-                } else {                  
-                    // If we managed to load the file, we add the
-                    // properties to the props, possibly
-                    // overwriting defaults.
-                    addProperties(props, fromFile);
-                }
-            }
-        }
-
-        // Finally, add the system properties (also from the command line)
-        // to the result, possibly overriding entries from file or the 
-        // defaults.            
-        addProperties(props, system);
+        /* TODO: we should load default properties from
+         * some form of long term storage or from some
+         * resource in the classpath or something like that.
+         */
 
         return props;
     }

@@ -22,8 +22,7 @@ import org.apache.bcel.generic.Type;
 
 /**
  * The IOGenerator is responsible for collecting the classes to be rewritten and
- * rewriting them in the proper order using the CodeGenerator to do the actual
- * code writing.
+ * rewriting them in the proper order.
  * 
  * @author Nick Palmer (npr200@few.vu.nl)
  */
@@ -37,6 +36,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 	boolean force_generated_calls = false;
 
 	boolean silent = false;
+	
+	boolean use_jme = false;
 
 	Vector<JavaClass> classes_to_rewrite, target_classes, classes_to_save;
 
@@ -54,16 +55,20 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 		silent = true;
 	}
 
-	public boolean isVerbose() {
+	protected boolean isVerbose() {
 		return verbose;
 	}
 
-	public boolean isFromIbisc() {
+	protected boolean isFromIbisc() {
 		return fromIbisc;
 	}
 
-	public boolean forceGeneratedCalls() {
+	protected boolean forceGeneratedCalls() {
 		return force_generated_calls;
+	}
+	
+	protected boolean useJME() {
+		return use_jme;
 	}
 
 	private boolean removeTarget(JavaClass clazz) {
@@ -82,7 +87,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 		classes_to_save.add(clazz);
 	}
 
-	public void replace(JavaClass clazz, JavaClass newclazz) {
+	protected void replace(JavaClass clazz, JavaClass newclazz) {
 		if (removeTarget(clazz)) {
 			Repository.removeClass(clazz);
 			Repository.addClass(newclazz);
@@ -93,7 +98,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 		}
 	}
 
-	public void markRewritten(JavaClass clazz, JavaClass instgen) {
+	protected void markRewritten(JavaClass clazz, JavaClass instgen) {
 		if (isFromIbisc()) {
 			setModified(wrapper.getInfo(clazz));
 			addEntry(wrapper.getInfo(instgen), clazz.getClassName());
@@ -103,13 +108,14 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 	}
 
 	public IOGenerator(boolean verbose, boolean local, boolean file,
-			boolean force_generated_calls, boolean silent) {
+			boolean force_generated_calls, boolean silent, boolean use_jme) {
 		this();
 		this.verbose = verbose;
 		this.local = local;
 		this.file = file;
 		this.force_generated_calls = force_generated_calls;
 		this.silent = silent;
+		this.use_jme = use_jme;
 	}
 
 	public boolean processArgs(ArrayList<String> args) {
@@ -120,12 +126,17 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 				args.remove(i);
 				i--;
 			}
+			if (arg.equals("-jme")) {
+				use_jme = true;
+				args.remove(i);
+				i--;
+			}
 		}
 		return true;
 	}
 
 	public String getUsageString() {
-		return "[-iogen-force]";
+		return "[-iogen-force] [-jme]";
 	}
 
 	public void process(Iterator classes) {
@@ -152,7 +163,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
 		for (int i = 0; i < classes_to_rewrite.size(); i++) {
 			JavaClass clazz = (JavaClass) classes_to_rewrite.get(i);
-			new CodeGenerator(this, clazz).generateEmptyMethods();
+			if (useJME()) {
+				new JMECodeGenerator(this, clazz).generateEmptyMethods();
+			}
+			else {
+				new CodeGenerator(this, clazz).generateEmptyMethods();
+			}
 		}
 
 		if (verbose) {
@@ -169,7 +185,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 					System.out.println("  Rewrite class : "
 							+ clazz.getClassName());
 				}
-				new CodeGenerator(this, clazz).generateCode();
+				if (useJME()) {
+					new JMECodeGenerator(this, clazz).generateCode();
+				}
+				else {
+					new CodeGenerator(this, clazz).generateCode();
+				}
 			}
 		}
 	}
@@ -179,12 +200,25 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 	}
 
 	private void addTargetClass(JavaClass clazz) {
-		if (!target_classes.contains(clazz) && !SerializationInfo.isIbisSerializable(clazz)) {
-			String nm = clazz.getClassName();
-			if (arguments.containsKey(nm)) {
-				target_classes.add(clazz);
-				if (verbose) {
-					System.out.println("Adding target class : " + nm);
+		if (useJME()) {
+			if (!target_classes.contains(clazz) && JMESerializationInfo.isJMESerializable(clazz) && !JMESerializationInfo.isJMERewritten(clazz)) {
+				String nm = clazz.getClassName();
+				if (arguments.containsKey(nm)) {
+					target_classes.add(clazz);
+					if (verbose) {
+						System.out.println("Adding jme target class : " + nm);
+					}
+				}
+			}			
+		}
+		else {
+			if (!target_classes.contains(clazz) && !SerializationInfo.isIbisSerializable(clazz)) {
+				String nm = clazz.getClassName();
+				if (arguments.containsKey(nm)) {
+					target_classes.add(clazz);
+					if (verbose) {
+						System.out.println("Adding target class : " + nm);
+					}
 				}
 			}
 		}
@@ -206,11 +240,21 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 	}
 
 	private void addRewriteClass(JavaClass clazz) {
-		if (!classes_to_rewrite.contains(clazz) && !SerializationInfo.isIbisSerializable(clazz)) {
-			classes_to_rewrite.add(clazz);
-			if (verbose) {
-				System.out.println("Adding rewrite class : "
-						+ clazz.getClassName());
+		if (useJME()) {
+			if (!classes_to_rewrite.contains(clazz) && JMESerializationInfo.isJMESerializable(clazz) && !JMESerializationInfo.isJMERewritten(clazz)) {
+				classes_to_rewrite.add(clazz);
+				if (verbose) {
+					System.out.println("Adding jme rewrite class : "
+							+ clazz.getClassName());
+				}
+			}
+		} else {
+			if (!classes_to_rewrite.contains(clazz) && !SerializationInfo.isIbisSerializable(clazz)) {
+				classes_to_rewrite.add(clazz);
+				if (verbose) {
+					System.out.println("Adding rewrite class : "
+							+ clazz.getClassName());
+				}
 			}
 		}
 	}
@@ -245,19 +289,39 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
 			if (super_classes != null) {
 				for (int i = 0; i < super_classes.length; i++) {
-					if (SerializationInfo.isSerializable(super_classes[i])) {
-						serializable = true;
-						if (!SerializationInfo.isIbisSerializable(super_classes[i])) {
-							if (!local
-									|| clazz.getPackageName().equals(
-											super_classes[i].getPackageName())) {
-								addRewriteClass(super_classes[i]);
+					if (useJME()) {
+						if (JMESerializationInfo.isJMESerializable(super_classes[i])) {
+							serializable = true;
+							if (!JMESerializationInfo.isJMERewritten(super_classes[i])) {
+								if (!local
+										|| clazz.getPackageName().equals(
+												super_classes[i].getPackageName())) {
+									addRewriteClass(super_classes[i]);
+								}
+							} else {
+								if (verbose) {
+									System.out.println(clazz.getClassName()
+											+ " already implements "
+											+ JMERewriterConstants.TYPE_IBIS_IO_JME_JMESERIALIZABLE);
+								}
 							}
-						} else {
-							if (verbose) {
-								System.out.println(clazz.getClassName()
-										+ " already implements "
-										+ TYPE_IBIS_IO_SERIALIZABLE);
+						}
+					}
+					else {
+						if (SerializationInfo.isSerializable(super_classes[i])) {
+							serializable = true;
+							if (!SerializationInfo.isIbisSerializable(super_classes[i])) {
+								if (!local
+										|| clazz.getPackageName().equals(
+												super_classes[i].getPackageName())) {
+									addRewriteClass(super_classes[i]);
+								}
+							} else {
+								if (verbose) {
+									System.out.println(clazz.getClassName()
+											+ " already implements "
+											+ TYPE_IBIS_IO_SERIALIZABLE);
+								}
 							}
 						}
 					}
@@ -425,7 +489,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
 		for (int i = 0; i < classes_to_rewrite.size(); i++) {
 			JavaClass clazz = classes_to_rewrite.get(i);
-			new CodeGenerator(this, clazz).generateEmptyMethods();
+			if (useJME()) {
+				new JMECodeGenerator(this, clazz).generateEmptyMethods();
+			}
+			else {
+				new CodeGenerator(this, clazz).generateEmptyMethods();
+			}
 		}
 
 		if (verbose) {
@@ -442,7 +511,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 					System.out.println("  Rewrite class : "
 							+ clazz.getClassName());
 				}
-				new CodeGenerator(this, clazz).generateCode();
+				if (useJME()) {
+					new JMECodeGenerator(this, clazz).generateCode();
+				}
+				else {
+					new CodeGenerator(this, clazz).generateCode();
+				}
 			}
 		}
 
@@ -477,7 +551,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
 	private static void usage() {
 		System.out.println("Usage : java IOGenerator [-dir|-local] "
-				+ "[-package <package>] [-v] "
+				+ "[-package <package>] [-v] [-jme]"
 				+ "<fully qualified classname list | classfiles>");
 		System.exit(1);
 	}
@@ -488,6 +562,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 		boolean file = false;
 		boolean force_generated_calls = false;
 		boolean silent = false;
+		boolean use_jme = false;
 		Vector<String> files = new Vector<String>();
 		String pack = null;
 
@@ -510,6 +585,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 				silent = true;
 			} else if (args[i].equals("-force")) {
 				force_generated_calls = true;
+			} else if (args[i].equals("-jme")) {
+				use_jme = true;
 			} else if (args[i].equals("-package")) {
 				pack = args[i + 1];
 				i++; // skip arg
@@ -555,7 +632,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 		}
 
 		new IOGenerator(verbose, local, file, force_generated_calls, 
-				silent).scanClass(newArgs);
+				silent, use_jme).scanClass(newArgs);
 	}
 
 	private static void processDirectory(File f, Vector<String> args,

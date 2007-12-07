@@ -12,7 +12,7 @@ import org.apache.bcel.generic.Type;
  * @author Nick Palmer (npr200@few.vu.nl)
  *
  */
-public interface RewriterConstants {
+interface RewriterConstants {
 	static final String TYPE_IBIS_IO_IBIS_SERIALIZATION_INPUT_STREAM = "ibis.io.IbisSerializationInputStream";
 	
 	static final ObjectType ibis_input_stream = new ObjectType(

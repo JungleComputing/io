@@ -3,7 +3,7 @@ package ibis.io.rewriter;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-public interface JMERewriterConstants {
+interface JMERewriterConstants {
 	
 	static final String TYPE_IBIS_IO_JME_SERIALIZABLE = "ibis.io.jme.Serializable";
 

@@ -1578,7 +1578,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
         int default_write_method_index = JMESerializationInfo.findMethod(
                 methods,
-                METHOD_GENERATED_DEFAULT_WRITE_OBJECT, 
+                METHOD_GENERATED_JME_DEFAULT_WRITE_OBJECT, 
                 SIGNATURE_LIBIS_IO_JME_OBJECT_OUTPUT_STREAM_I_V);
         MethodGen write_gen = new MethodGen(
                 methods[default_write_method_index], classname,
@@ -1635,7 +1635,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 		IF_ICMPNE ifcmpne;
 		int default_read_method_index = JMESerializationInfo.findMethod(
                 methods,
-                METHOD_GENERATED_DEFAULT_READ_OBJECT, 
+                METHOD_GENERATED_JME_DEFAULT_READ_OBJECT, 
                 SIGNATURE_LIBIS_IO_JME_OBJECT_INPUT_STREAM_I_V);
         MethodGen read_gen = new MethodGen(
                 methods[default_read_method_index], classname,

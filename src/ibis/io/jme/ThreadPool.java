@@ -13,8 +13,6 @@ import org.apache.log4j.Logger;
  * @author Niels Drost.
  */
 public final class ThreadPool {
-
-    static final Logger logger = Logger.getLogger(ThreadPool.class);
     
     private static final class PoolThread extends Thread {
 
@@ -26,8 +24,7 @@ public final class ThreadPool {
 
         private static final class ThreadPoolShutdown extends Thread {
             public void run() {
-                Logger logger = Logger.getLogger(ThreadPool.class);
-                logger.info("maximum number of simultaneous threads was: " + maxSimultaneousThreads);
+                IOProperties.logger.info("maximum number of simultaneous threads was: " + maxSimultaneousThreads);
             }
         }
         
@@ -48,12 +45,12 @@ public final class ThreadPool {
             if(nrOfThreads > maxSimultaneousThreads) {
                 maxSimultaneousThreads = nrOfThreads;
             }
-            logger.debug("New Thread \"" + name + "\" createded, number of threads now: "  + nrOfThreads);
+            IOProperties.logger.debug("New Thread \"" + name + "\" createded, number of threads now: "  + nrOfThreads);
         }
 
         private static synchronized void threadGone() {
             nrOfThreads--;
-            logger.debug("Thread removed from pool. Now " + nrOfThreads + " threads");
+            IOProperties.logger.debug("Thread removed from pool. Now " + nrOfThreads + " threads");
         }
 
         private PoolThread() {
@@ -64,14 +61,14 @@ public final class ThreadPool {
             this.work = runnable;
             this.name = name;
 
-             if (logger.isInfoEnabled()) {
+             if (IOProperties.logger.isInfoEnabled()) {
                  newThread(name);
              }
         }
 
         private synchronized boolean issue(Runnable newWork, String newName) {
             if (expired) {
-                logger.debug("issue(): thread has expired");
+                IOProperties.logger.debug("issue(): thread has expired");
                 return false;
             }
 
@@ -82,7 +79,7 @@ public final class ThreadPool {
 
             work = newWork;
             name = newName;
-            logger.debug("issue(): reusing thread");
+            IOProperties.logger.debug("issue(): reusing thread");
             
             notifyAll();
             return true;
@@ -100,7 +97,7 @@ public final class ThreadPool {
                             wait(TIMEOUT);
                         } catch (InterruptedException e) {
                             expired = true;
-                            if (logger.isInfoEnabled()) {
+                            if (IOProperties.logger.isInfoEnabled()) {
                                 threadGone();
                             }
                             return;
@@ -109,7 +106,7 @@ public final class ThreadPool {
                     if (this.work == null) {
                         //still no work, exit
                         expired = true;
-                        if (logger.isInfoEnabled()) {
+                        if (IOProperties.logger.isInfoEnabled()) {
                             threadGone();
                         }
                         return;
@@ -121,7 +118,7 @@ public final class ThreadPool {
                    // setName(currentName);
                     currentWork.run();
                 } catch (Throwable t) {
-                    logger.fatal("caught exception in pool thread " + currentName, t);
+                    IOProperties.logger.fatal("caught exception in pool thread " + currentName, t);
                     // Exit, rather than continue. A thread died unexpectedly,
                     // after all. If you dont want this, catch all throwables
                     // yourself.
@@ -184,8 +181,8 @@ public final class ThreadPool {
             }
             //shortest waiting poolThread in list timed out, 
             //assume all threads timed out
-            if (logger.isDebugEnabled()) {
-                logger.debug("clearing thread pool of size "
+            if (IOProperties.logger.isDebugEnabled()) {
+                IOProperties.logger.debug("clearing thread pool of size "
                         + threadPool.size());
             }
             emptyPool();

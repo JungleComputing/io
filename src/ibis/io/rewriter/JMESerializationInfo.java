@@ -6,10 +6,16 @@ import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.Type;
 
-public class JMESerializationInfo extends SerializationInfo implements JMERewriterConstants {
+class JMESerializationInfo extends SerializationInfo implements JMERewriterConstants {
+
 	static boolean isJMESerializable(JavaClass clazz) {
 		return Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_SERIALIZABLE);
 	}
+	
+	static boolean isJMERewritten(JavaClass clazz) {
+		return Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_JMESERIALIZABLE);
+	}
+
 
 	static boolean isJMEExternalizable(JavaClass clazz) {
 		return Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_EXTERNALIZABLE);
