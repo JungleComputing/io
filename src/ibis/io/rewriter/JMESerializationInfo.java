@@ -8,8 +8,26 @@ import org.apache.bcel.generic.Type;
 
 class JMESerializationInfo extends SerializationInfo implements JMERewriterConstants {
 
+	static boolean isJMESpecialCase(JavaClass clazz) {
+		String className = clazz.getClassName();
+		if (
+			"java.lang.Object".equals(className) ||
+			"java.lang.Boolean".equals(className) ||
+			"java.lang.Byte".equals(className) ||
+			"java.lang.Short".equals(className) ||
+			"java.lang.Integer".equals(className) ||
+			"java.lang.Long".equals(className) ||
+			"java.lang.Float".equals(className) ||
+			"java.lang.Double".equals(className) ||
+			"java.lang.Character".equals(className)
+			) {
+			return true;
+		}
+		return false;
+	}
+	
 	static boolean isJMESerializable(JavaClass clazz) {
-		return Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_SERIALIZABLE);
+		return  Repository.implementationOf(clazz, TYPE_IBIS_IO_JME_SERIALIZABLE);
 	}
 	
 	static boolean isJMERewritten(JavaClass clazz) {

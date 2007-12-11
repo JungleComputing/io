@@ -1201,7 +1201,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
                     + " handle = " + next_handle);
         }
 
-        Object obj = t.reader.readObject(this, t, type);
+        Object obj = t.readerWriter.readObject(this, t, type);
 
         if (TIME_IBIS_SERIALIZATION) {
             stopTimer();
@@ -1377,7 +1377,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
             AlternativeTypeInfo t
                     = AlternativeTypeInfo.getAlternativeTypeInfo(type);
 
-            if (t.isIbisSerializable) {
+            if (t.isJMESerializable) {
                 if (DEBUG && logger.isDebugEnabled()) {
                     logger.debug("generated_DefaultReadObject, class = " + type
                             + ", level = " + current_level);

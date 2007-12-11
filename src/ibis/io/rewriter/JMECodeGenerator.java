@@ -55,9 +55,11 @@ import org.apache.bcel.generic.Type;
 class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERewriterConstants {
 
     boolean super_is_jme_serializable;
-
-    boolean super_is_ibis_serializable;
-
+    
+    boolean super_is_jme_special_case;
+    
+    boolean super_is_jme_rewritten;
+    
     boolean super_has_jme_constructor;
 
     boolean is_jme_externalizable;
@@ -67,10 +69,14 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
     JMECodeGenerator(IOGenerator generator, JavaClass cl) {
     	super(generator, cl);
     	
+    	super_is_jme_special_case = JMESerializationInfo.isJMESpecialCase(super_class);
         super_is_jme_serializable = JMESerializationInfo.isJMESerializable(super_class);
+        super_is_jme_rewritten = JMESerializationInfo.isJMERewritten(super_class);
         is_jme_externalizable = JMESerializationInfo.isJMEExternalizable(cl);
         super_has_jme_constructor = JMESerializationInfo.hasJMEConstructor(super_class);
         has_jme_serial_persistent_fields = JMESerializationInfo.hasJMESerialPersistentFields(fields);
+        System.err.println("Code Generator: " + cl.getClassName() + 
+        		" sijs: " + super_is_jme_serializable + " sijr: " + super_is_jme_rewritten);
     }
 
     private Instruction createGeneratedWriteObjectInvocation(String name,
@@ -91,7 +97,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         return f.createInvoke(name, METHOD_INIT, Type.VOID,
                 jme_input_stream_arrtp, Constants.INVOKESPECIAL);
     }
-
+    
     private Instruction createGeneratedDefaultWriteObjectInvocation(
             String name) {
         return factory.createInvoke(name, METHOD_GENERATED_JME_DEFAULT_WRITE_OBJECT,
@@ -100,7 +106,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
     }
 
     private int getClassDepth(JavaClass cl) {
-        if (!JMESerializationInfo.isJMESerializable(cl)) {
+        if (cl.getClassName().equals("java.lang.Object") || !JMESerializationInfo.isJMESerializable(cl)) {
             return 0;
         }
         return 1 + getClassDepth(Repository.lookupClass(
@@ -1487,22 +1493,13 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         /* write the superclass if neccecary */
         if (is_jme_externalizable) {
             /* Nothing to be done for the superclass. */
-        } else if (super_is_ibis_serializable
-                || (generator.forceGeneratedCalls() && super_is_jme_serializable)) {
+        } else if (super_is_jme_serializable
+                || (generator.forceGeneratedCalls() && super_is_jme_rewritten)) {
             write_il.append(new ALOAD(0));
             write_il.append(new ALOAD(1));
             write_il.append(createGeneratedWriteObjectInvocation(
                     super_classname, Constants.INVOKESPECIAL));
 
-        } else if (super_is_jme_serializable) {
-            int ind = constantpool.addString(super_classname);
-            write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(0));
-            write_il.append(new LDC(ind));
-            write_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
-                    METHOD_WRITE_SERIALIZABLE_OBJECT, Type.VOID, new Type[] {
-                            Type.OBJECT, Type.STRING },
-                    Constants.INVOKEVIRTUAL));
         }
 
         /* and now ... generated_WriteObject should either call the classes
@@ -1522,26 +1519,11 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                             Type.OBJECT, Type.INT },
                     Constants.INVOKEVIRTUAL));
 
-            write_il.append(new ALOAD(0));
-            write_il.append(new ALOAD(1));
-            write_il.append(factory.createInvoke(
-                        TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
-                        METHOD_GET_JAVA_OBJECT_OUTPUT_STREAM,
-                        sun_output_stream,
-                        Type.NO_ARGS,
-                        Constants.INVOKEVIRTUAL));
-            if (is_jme_externalizable) {
-                /* Invoke writeExternal */
-                write_il.append(
-                        factory.createInvoke(classname, METHOD_WRITE_EXTERNAL,
-                                Type.VOID, new Type[] { new ObjectType(
-                                        TYPE_JAVA_IO_OBJECT_OUTPUT) },
-                                Constants.INVOKEVIRTUAL));
-            } else {
-                /* Invoke writeObject. */
-            	/* TODO: Create a throws NotSerializable here */
-                /* write_il.append(createWriteObjectInvocation()); */
-            }
+            /* Invoke writeObject. */
+            write_il.append(
+                    createGeneratedWriteObjectInvocation(
+                            clazz.getClassName(),
+                            Constants.INVOKEVIRTUAL));
 
             /* And then, restore IbisSerializationOutputStream's idea of the current object. */
             write_il.append(new ALOAD(1));
@@ -1549,7 +1531,33 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                     METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
         } else {
-            write_il.append(generateDefaultWrites(write_gen));
+        	if (!super_is_jme_serializable && !super_is_jme_special_case) {
+        		/* TODO: Create a throws NotSerializable here */
+        		System.err.println("Class: " + clazz.getClassName() + " marked ibis.io.jme.Serializable but superclass is not serializable! Use Externalizable if the superclass can not be marked the same.");
+                write_il.append(new ALOAD(0));
+                write_il.append(factory.createNew(TYPE_IBIS_IO_JME_NOT_SERIALIZABLE_EXCEPTION));
+                write_il.append(new DUP());
+                write_il.append(factory.createNew(TYPE_JAVA_LANG_STRING_BUFFER));
+                write_il.append(new DUP());
+                write_il.append(
+                        factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                                METHOD_INIT, Type.VOID, Type.NO_ARGS,
+                                Constants.INVOKESPECIAL));
+                write_il.append(new PUSH(constantpool, "Superclass Not Serializable: " + clazz.getClassName()));
+                write_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                        METHOD_APPEND, Type.STRINGBUFFER, new Type[] { Type.STRING },
+                        Constants.INVOKEVIRTUAL));
+                write_il.append(factory.createInvoke(TYPE_JAVA_LANG_STRING_BUFFER,
+                        METHOD_TO_STRING, Type.STRING, Type.NO_ARGS,
+                        Constants.INVOKEVIRTUAL));
+                write_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_NOT_SERIALIZABLE_EXCEPTION,
+                        METHOD_INIT, Type.VOID, new Type[] { Type.STRING },
+                        Constants.INVOKESPECIAL));
+                write_il.append(new ATHROW());
+        	}
+        	else {
+        		write_il.append(generateDefaultWrites(write_gen));
+        	}
         }
         
         write_gen = new MethodGen(methods[write_method_index], classname,
@@ -1593,12 +1601,12 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         write_il.append(ifcmpne);
         write_il.append(generateDefaultWrites(write_gen));
         write_il.append(new GOTO(end));
-        if (super_is_ibis_serializable || super_is_jme_serializable) {
+        if (super_is_jme_serializable || super_is_jme_rewritten) {
             InstructionHandle i = write_il.append(new ILOAD(2));
             ifcmpne.setTarget(i);
             write_il.append(new SIPUSH((short) dpth));
             write_il.append(new IF_ICMPGT(end));
-            if (super_is_ibis_serializable || generator.forceGeneratedCalls()) {
+            if (super_is_jme_serializable || super_is_jme_rewritten || generator.forceGeneratedCalls()) {
                 write_il.append(new ALOAD(0));
                 write_il.append(new ALOAD(1));
                 write_il.append(new ILOAD(2));
@@ -1651,12 +1659,12 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         read_il.append(generateDefaultReads(false, read_gen));
         read_il.append(new GOTO(end));
 
-        if (super_is_ibis_serializable || super_is_jme_serializable) {
+        if (super_is_jme_serializable || super_is_jme_rewritten) {
             InstructionHandle i = read_il.append(new ILOAD(2));
             ifcmpne.setTarget(i);
             read_il.append(new SIPUSH((short) dpth));
             read_il.append(new IF_ICMPGT(end));
-            if (super_is_ibis_serializable || generator.forceGeneratedCalls()) {
+            if (super_is_jme_serializable || generator.forceGeneratedCalls()) {
                 read_il.append(new ALOAD(0));
                 read_il.append(new ALOAD(1));
                 read_il.append(new ILOAD(2));

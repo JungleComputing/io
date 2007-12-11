@@ -25,25 +25,37 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     private static Hashtable alternativeTypes
             = new Hashtable();
 
-    private static class ArrayWriter extends IbisWriter {
-        void writeObject(ObjectOutputStream out, Object ref,
+    private static class ArrayReaderWriter extends IbisReaderWriter {
+        public void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             out.writeArray(ref, t.clazz, unshared);
         }
+        
+        public Object readObject(ObjectInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            return in.readArray(t.clazz, typeHandle);
+        }
     }
 
-    private static class JMESerializableWriter extends IbisWriter {
-        void writeObject(ObjectOutputStream out, Object ref,
+    private static class JMESerializableReaderWriter extends IbisReaderWriter {
+        public void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
             ((JMESerializable) ref).generated_JME_WriteObject(out);
         }
+        
+        public Object readObject(ObjectInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            return t.gen.generated_newInstance(in);
+        }
     }
 
-    private static class ExternalizableWriter extends IbisWriter {
-        void writeObject(ObjectOutputStream out, Object ref,
+    private static class ExternalizableReaderWriter extends IbisReaderWriter {
+        public void writeObject(ObjectOutputStream out, Object ref,
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
@@ -52,74 +64,8 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                     out.getJavaObjectOutputStream());
             out.pop_current_object();
         }
-    }
-
-    private static class StringWriter extends IbisWriter {
-        void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
-                throws IOException {
-            super.writeHeader(out, ref, t, hashCode, unshared);
-            out.writeUTF((String) ref);
-        }
-    }
-
-    private static class ClassWriter extends IbisWriter {
-        void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
-                throws IOException {
-            super.writeHeader(out, ref, t, hashCode, unshared);
-            out.writeUTF((String) ref);
-        }
-    }
-
-    private static class NotSerializableWriter extends IbisWriter {
-        void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
-                throws IOException {
-            throw new NotSerializableException("Not serializable: " +
-                    t.clazz.getName());
-        }
-    }
-
-    private static class JMESerializableReader extends IbisReader {
-        Object readObject(ObjectInputStream in,
-                AlternativeTypeInfo t, int typeHandle)
-                throws IOException, ClassNotFoundException {
-            return t.gen.generated_newInstance(in);
-        }
-    }
-
-    private static class ArrayReader extends IbisReader {
-        Object readObject(ObjectInputStream in,
-                AlternativeTypeInfo t, int typeHandle)
-                throws IOException, ClassNotFoundException {
-            return in.readArray(t.clazz, typeHandle);
-        }
-    }
-
-    private static class StringReader extends IbisReader {
-        Object readObject(ObjectInputStream in,
-                AlternativeTypeInfo t, int typeHandle)
-                throws IOException, ClassNotFoundException {
-            String o = in.readUTF();
-            in.addObjectToCycleCheck(o);
-            return o;
-        }
-    }
-
-    private static class ClassReader extends IbisReader {
-        Object readObject(ObjectInputStream in,
-                AlternativeTypeInfo t, int typeHandle)
-                throws IOException, ClassNotFoundException {
-            String o = in.readUTF();
-            Object obj = in.getClassFromName(o);
-            in.addObjectToCycleCheck(obj);
-            return obj;
-        }
-    }
-
-    private static class ExternalizableReader extends IbisReader {
-        Object readObject(ObjectInputStream in,
+        
+        public Object readObject(ObjectInputStream in,
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             Object obj;
@@ -141,15 +87,150 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
         }
     }
 
+    private static class StringReaderWriter extends IbisReaderWriter {
+        public void writeObject(ObjectOutputStream out, Object ref,
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            super.writeHeader(out, ref, t, hashCode, unshared);
+            out.writeUTF((String) ref);
+        }
+        
+        public Object readObject(ObjectInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            String o = in.readUTF();
+            in.addObjectToCycleCheck(o);
+            return o;
+        }
+    }
+
+    private static class ClassReaderWriter extends IbisReaderWriter {
+        public void writeObject(ObjectOutputStream out, Object ref,
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            super.writeHeader(out, ref, t, hashCode, unshared);
+            out.writeUTF((String) ref);
+        }
+        
+        public Object readObject(ObjectInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            String o = in.readUTF();
+            Object obj = in.getClassFromName(o);
+            in.addObjectToCycleCheck(obj);
+            return obj;
+        }
+    }
+
+    private static class PrimitiveReaderWriter extends IbisReaderWriter {
+        public void writeObject(ObjectOutputStream out, Object ref,
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+        	if ( ref.getClass() == Boolean.class) {
+        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		out.writeBoolean(((Boolean)ref).booleanValue());
+        	}
+        	else if (ref.getClass() == Byte.class) {
+        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		out.writeByte(((Byte)ref).byteValue());
+        	}
+        	else if (ref.getClass() == Short.class) {
+        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		out.writeShort(((Short)ref).shortValue());
+        	}
+        	else if (ref.getClass() == Double.class) {
+        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		out.writeDouble(((Double)ref).doubleValue());
+        	}
+        	else if (ref.getClass() == Float.class) {
+        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		out.writeFloat(((Float)ref).floatValue());
+        	}
+        	else if (ref.getClass() == Integer.class) {
+        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		out.writeInt(((Integer)ref).intValue());
+        	}
+        	else if (ref.getClass() == Long.class) {
+        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		out.writeLong(((Long)ref).longValue());
+        	}
+        	else if (ref.getClass() == Character.class) {
+        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		out.writeChar(((Character)ref).charValue());
+        	}
+        	else {
+        		throw new SerializationError("Unknown primitive type!");
+        	}
+        }
+
+		public Object readObject(ObjectInputStream in, AlternativeTypeInfo t, int typeHandle) throws IOException, ClassNotFoundException {
+        	if ( t.clazz == Boolean.class) {
+                Boolean o = new Boolean(in.readBoolean());
+                in.addObjectToCycleCheck(o);
+                return o;
+        	}
+        	else if (t.clazz == Byte.class) {
+                Byte o = new Byte(in.readByte());
+                in.addObjectToCycleCheck(o);
+                return o;
+        	}
+        	else if (t.clazz == Short.class) {
+                Short o = new Short(in.readShort());
+                in.addObjectToCycleCheck(o);
+                return o;
+        	}
+        	else if (t.clazz == Double.class) {
+                Double o = new Double(in.readDouble());
+                in.addObjectToCycleCheck(o);
+                return o;
+        	}
+        	else if (t.clazz == Float.class) {
+                Float o = new Float(in.readFloat());
+                in.addObjectToCycleCheck(o);
+                return o;
+        	}
+        	else if (t.clazz == Integer.class) {
+                Integer o = new Integer(in.readInt());
+                in.addObjectToCycleCheck(o);
+                return o;
+        	}
+        	else if (t.clazz == Long.class) {
+                Long o = new Long(in.readLong());
+                in.addObjectToCycleCheck(o);
+                return o;
+        	}
+        	else if (t.clazz == Character.class) {
+                Character o = new Character(in.readChar());
+                in.addObjectToCycleCheck(o);
+                return o;
+        	}
+        	else {
+        		throw new SerializationError("Unknown primitive type!");
+        	}
+		}
+    }
+    
+    private static class NotSerializableReaderWriter extends IbisReaderWriter {
+        public void writeObject(ObjectOutputStream out, Object ref,
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            throw new NotSerializableException("Not serializable: " +
+                    t.clazz.getName());
+        }
+        
+		public Object readObject(ObjectInputStream in, AlternativeTypeInfo t, int typeHandle) throws IOException, ClassNotFoundException {
+            throw new NotSerializableException("Not serializable: " +
+                    t.clazz.getName());
+		}
+    }
+
     /**
      * The <code>Class</code> structure of the class represented by this
      * <code>AlternativeTypeInfo</code> structure.
      */
     Class clazz;
 
-    final IbisWriter writer;
-
-    final IbisReader reader;
+    final IbisReaderWriter readerWriter;
 
     /**
      * For each field, indicates whether the field is final.
@@ -216,10 +297,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     boolean hasReplace;
 
     /** Set if the class is Ibis serializable. */
-    boolean isIbisSerializable = false;
-
-    /** Set if the class is serializable. */
-    boolean isSerializable = false;
+    boolean isJMESerializable = false;
 
     /** Set if the class is externalizable. */
     boolean isExternalizable = false;
@@ -358,7 +436,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
             }
             */
 
-            isSerializable = ibis.io.jme.JMESerializable.class.isAssignableFrom(clazz);
+            isJMESerializable = ibis.io.jme.JMESerializable.class.isAssignableFrom(clazz);
 
             isExternalizable = ibis.io.jme.Externalizable.class.isAssignableFrom(clazz);
 
@@ -391,46 +469,36 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                     + "info for " + clazz.getName(), e);
         }
 
-        writer = createWriter();
-        reader = createReader();
+        readerWriter = createReaderWriter();
     }
 
-    private IbisWriter createWriter() {
+    private IbisReaderWriter createReaderWriter() {
         if (isArray) {
-            return new ArrayWriter();
+            return new ArrayReaderWriter();
         }
-        if (isIbisSerializable) {
-            return new JMESerializableWriter();
+        if (isJMESerializable) {
+            return new JMESerializableReaderWriter();
         }
         if (isExternalizable) {
-            return new ExternalizableWriter();
+            return new ExternalizableReaderWriter();
         }
         if (isString) {
-            return new StringWriter();
+            return new StringReaderWriter();
         }
         if (isClass) {
-            return new ClassWriter();
+            return new ClassReaderWriter();
         }
-        return new NotSerializableWriter();
-    }
-
-    private IbisReader createReader() {
-        if (isArray) {
-            return new ArrayReader();
+        if (this.clazz == Boolean.class ||
+        		this.clazz == Byte.class ||
+        		this.clazz == Short.class ||
+        		this.clazz == Integer.class ||
+        		this.clazz == Long.class ||
+        		this.clazz == Float.class ||
+        		this.clazz == Double.class ||
+        		this.clazz == Character.class ) {
+        	return new PrimitiveReaderWriter();
         }
-        if (gen != null) {
-            return new JMESerializableReader();
-        }
-        if (isExternalizable) {
-            return new ExternalizableReader();
-        }
-        if (isString) {
-            return new StringReader();
-        }
-        if (isClass) {
-            return new ClassReader();
-        }
-        throw new SerializationError("Internal error: Could not find serialization for " + clazz.getName());
+        return new NotSerializableReaderWriter();
     }
 
     static Class getClass(String n) {

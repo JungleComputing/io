@@ -3,23 +3,14 @@ package ibis.io.jme;
 import java.io.IOException;
 
 /**
- * Abstract class that implements object writes for any kind of object.
- * The idea is that there is a separate writer for each kind of object,
- * so that runtime tests can be avoided.
+ * The interface for writing objects.
  */
-abstract class IbisWriter {
-    abstract void writeObject(ObjectOutputStream out, Object ref,
+interface IbisWriter {
+    void writeObject(ObjectOutputStream out, Object ref,
             AlternativeTypeInfo t, int hashCode, boolean unshared)
             throws IOException;
 
     void writeHeader(ObjectOutputStream out, Object ref,
             AlternativeTypeInfo t, int hashCode, boolean unshared)
-            throws IOException {
-        // Code needed for most IbisWriters.
-        if (! unshared) {
-            out.assignHandle(ref, hashCode);
-        }
-        out.writeType(t.clazz);
-        ObjectOutputStream.addStatSendObject(ref);
-    }
+            throws IOException;
 }

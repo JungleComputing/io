@@ -372,7 +372,7 @@ class SerializationInfo implements RewriterConstants {
 	}
 
     static int findMethod(Method[] methods, String name, String signature) {
-        for (int i = 0; i < methods.length; i++) {
+    	for (int i = 0; i < methods.length; i++) {
             if (methods[i].getName().equals(name)
                     && methods[i].getSignature().equals(signature)) {
                 return i;

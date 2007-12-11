@@ -211,7 +211,7 @@ public class ObjectOutputStream
 
         return 0;
     }
-
+    
     private static int arrayClassType(Class arrayClass) {
         if (false) {
             // nothing
@@ -897,7 +897,7 @@ public class ObjectOutputStream
     public void writeObject(Object ref) throws IOException {
         doWriteObject(ref);
     }
-
+    
     public void close() throws IOException {
         super.close();
         replacer = null;
@@ -959,7 +959,7 @@ public class ObjectOutputStream
                 logger.debug("start writeObject of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
-            t.writer.writeObject(this, ref, t, hashCode, false);
+            t.readerWriter.writeObject(this, ref, t, hashCode, false);
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("finished writeObject of class " + clazz.getName());
             }
@@ -1011,7 +1011,7 @@ public class ObjectOutputStream
             AlternativeTypeInfo t
                     = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
-            if (t.isIbisSerializable) {
+            if (t.isJMESerializable) {
                 /* Note that this will take the generated_DefaultWriteObject of the
                  dynamic type of ref. The current_level variable actually
                  indicates which instance of generated_DefaultWriteObject 
@@ -1050,7 +1050,7 @@ public class ObjectOutputStream
                         + " handle = " + next_handle);
             }
 
-            t.writer.writeObject(ibisStream, ref, t, 0, true);
+            t.readerWriter.writeObject(ibisStream, ref, t, 0, true);
 
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("finished writeUnshared of class " + clazz.getName()

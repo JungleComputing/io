@@ -147,9 +147,18 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 			arguments.put(cl.getClassName(), cl);
 		}
 		for (JavaClass cl : arguments.values()) {
-			if (SerializationInfo.isSerializable(cl)) {
-				if (! SerializationInfo.isIbisSerializable(cl)) {
-					addClass(cl);
+			if (useJME()) {
+				if (JMESerializationInfo.isJMESerializable(cl)) {
+					if (! JMESerializationInfo.isJMERewritten(cl)) {
+						addClass(cl);
+					}
+				}
+			}
+			else {
+				if (SerializationInfo.isSerializable(cl)) {
+					if (! SerializationInfo.isIbisSerializable(cl)) {
+						addClass(cl);
+					}
 				}
 			}
 		}
@@ -180,6 +189,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
 		for (int i = 0; i < target_classes.size(); i++) {
 			JavaClass clazz = target_classes.get(i);
+			System.err.println("Target Class: " + clazz.getClassName());
 			if (!clazz.isInterface()) {
 				if (!silent) {
 					System.out.println("  Rewrite class : "
@@ -201,7 +211,8 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
 	private void addTargetClass(JavaClass clazz) {
 		if (useJME()) {
-			if (!target_classes.contains(clazz) && JMESerializationInfo.isJMESerializable(clazz) && !JMESerializationInfo.isJMERewritten(clazz)) {
+			System.err.println("Considering target: " + clazz.getClassName());
+			if (!target_classes.contains(clazz)) {
 				String nm = clazz.getClassName();
 				if (arguments.containsKey(nm)) {
 					target_classes.add(clazz);
@@ -327,8 +338,12 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 					}
 				}
 			}
-
-			serializable |= SerializationInfo.isSerializable(clazz);
+			if (useJME()) {
+				serializable |= JMESerializationInfo.isJMESerializable(clazz);
+			}
+			else {
+				serializable |= SerializationInfo.isSerializable(clazz);
+			}
 		} else {
 			serializable = true;
 		}

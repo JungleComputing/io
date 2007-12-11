@@ -2,7 +2,7 @@ package ibis.io.jme;
 
 import java.io.IOException;
 
-class NotSerializableException extends IOException {
+public class NotSerializableException extends IOException {
 
     private static final long serialVersionUID = 1L;
 
