@@ -112,18 +112,10 @@ public class ByteSerializationInputStream extends SerializationBase
     }
 
     public void readArray(byte[] ref, int off, int len) throws IOException {
-        /*
-         * Call read() and read() here. It is supported.
-         * RFHH
-         */
-        if (off == 0 && ref.length == len) {
-            int rd = 0;
-            do {
-                rd += in.read(ref, rd, len - rd);
-            } while (rd < len);
-            return;
-        }
-        throw new IOException("Illegal data type read");
+        int rd = 0;
+        do {
+        	rd += in.read(ref, off + rd, len - rd);
+        } while (rd < len);
     }
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {
