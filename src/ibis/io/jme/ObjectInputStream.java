@@ -1141,8 +1141,16 @@ public class ObjectInputStream extends DataSerializationInputStream {
     public Object readObject() throws IOException, ClassNotFoundException {
         return doReadObject(false);
     }
+    
+    public Object readObject(Class clazz) throws IOException, ClassNotFoundException {
+    	return doReadObject(false, clazz);
+    }
 
-    final Object doReadObject(boolean unshared) throws IOException,
+    final Object doReadObject(boolean unshared) throws IOException, ClassNotFoundException {
+    	return doReadObject(unshared, null);
+    }
+    
+    final Object doReadObject(boolean unshared, Class clazz) throws IOException,
             ClassNotFoundException {
         /*
          * ref < 0:    type
@@ -1194,7 +1202,13 @@ public class ObjectInputStream extends DataSerializationInputStream {
         }
 
         int type = handle_or_type & TYPE_MASK;
-        AlternativeTypeInfo t = readType(type);
+        AlternativeTypeInfo t;
+        if (clazz == null) {
+        	t = readType(type);
+        }
+        else {
+        	t = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+        }
 
         if (DEBUG && logger.isDebugEnabled()) {
             logger.debug("start readObject of class " + t.clazz.getName()

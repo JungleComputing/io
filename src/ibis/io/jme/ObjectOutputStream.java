@@ -474,7 +474,7 @@ public class ObjectOutputStream
         Class clazz = ref.getClass();
         if (writeArrayHeader(ref, clazz, len, false)) {
             for (int i = off; i < off + len; i++) {
-                doWriteObject(ref[i]);
+                doWriteObject(ref[i], null);
             }
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -632,7 +632,7 @@ public class ObjectOutputStream
             int len = a.length;
             if (writeArrayHeader(a, arrayClass, len, !unshared)) {
                 for (int i = 0; i < len; i++) {
-                    doWriteObject(a[i]);
+                    doWriteObject(a[i], null);
                 }
             }
         }
@@ -654,12 +654,16 @@ public class ObjectOutputStream
         return type_number;
     }
 
+    void writeType(Class clazz) throws IOException {
+    	writeType(clazz, false);
+    }
+    
     /**
      * Writes a type number, and, when new, a type name to the output stream.
      * @param clazz		the clazz to be written.
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    void writeType(Class clazz) throws IOException {
+    void writeType(Class clazz, boolean expected) throws IOException {
         int type_number;
 
         if (clazz == lastClass) {
@@ -689,7 +693,9 @@ public class ObjectOutputStream
                     + Integer.toHexString(type_number) + " type "
                     + clazz.getName());
         }
-        writeUTF(clazz.getName());
+        if (!expected) {
+        	writeUTF(clazz.getName());
+        }
     }
 
     /**
@@ -895,7 +901,11 @@ public class ObjectOutputStream
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
     public void writeObject(Object ref) throws IOException {
-        doWriteObject(ref);
+        doWriteObject(ref, null);
+    }
+    
+    public void writeObject(Object ref, Class clazz) throws IOException {
+    	doWriteObject(ref, clazz);
     }
     
     public void close() throws IOException {
@@ -919,7 +929,7 @@ public class ObjectOutputStream
         }
     }
 
-    void doWriteObject(Object ref) throws IOException {
+    void doWriteObject(Object ref, Class type) throws IOException {
         /*
          * ref < 0:	type
          * ref = 0:	null ptr
@@ -952,14 +962,20 @@ public class ObjectOutputStream
         int handle = references.find(ref, hashCode);
 
         if (handle == 0) {
-            Class clazz = ref.getClass();
+        	Class clazz;
+        	if (type == null) {
+            	clazz = ref.getClass();
+        	}
+        	else {
+        		clazz = type;
+        	}
             AlternativeTypeInfo t
                         = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("start writeObject of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
-            t.readerWriter.writeObject(this, ref, t, hashCode, false);
+            t.readerWriter.writeObject(this, ref, t, hashCode, false, type);
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("finished writeObject of class " + clazz.getName());
             }
@@ -998,7 +1014,7 @@ public class ObjectOutputStream
         }
 
         public void writeObjectOverride(Object ref) throws IOException {
-            ibisStream.doWriteObject(ref);
+            ibisStream.doWriteObject(ref, null);
         }
 
         public void defaultWriteObject() throws IOException, NotActiveException {
@@ -1050,7 +1066,7 @@ public class ObjectOutputStream
                         + " handle = " + next_handle);
             }
 
-            t.readerWriter.writeObject(ibisStream, ref, t, 0, true);
+            t.readerWriter.writeObject(ibisStream, ref, t, 0, true, null);
 
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("finished writeUnshared of class " + clazz.getName()

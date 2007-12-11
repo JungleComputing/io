@@ -27,7 +27,8 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
     private static class ArrayReaderWriter extends IbisReaderWriter {
         public void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                AlternativeTypeInfo t, int hashCode, boolean unshared, 
+                Class expected)
                 throws IOException {
             out.writeArray(ref, t.clazz, unshared);
         }
@@ -41,9 +42,10 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
     private static class JMESerializableReaderWriter extends IbisReaderWriter {
         public void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                AlternativeTypeInfo t, int hashCode, boolean unshared,
+                Class expected)
                 throws IOException {
-            super.writeHeader(out, ref, t, hashCode, unshared);
+            super.writeHeader(out, ref, t, hashCode, unshared, expected);
             ((JMESerializable) ref).generated_JME_WriteObject(out);
         }
         
@@ -56,9 +58,10 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
     private static class ExternalizableReaderWriter extends IbisReaderWriter {
         public void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                AlternativeTypeInfo t, int hashCode, boolean unshared,
+                Class expected)
                 throws IOException {
-            super.writeHeader(out, ref, t, hashCode, unshared);
+            super.writeHeader(out, ref, t, hashCode, unshared, expected);
             out.push_current_object(ref, 0);
             ((Externalizable) ref).writeExternal(
                     out.getJavaObjectOutputStream());
@@ -89,9 +92,10 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
     private static class StringReaderWriter extends IbisReaderWriter {
         public void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                AlternativeTypeInfo t, int hashCode, boolean unshared,
+                Class expected)
                 throws IOException {
-            super.writeHeader(out, ref, t, hashCode, unshared);
+            super.writeHeader(out, ref, t, hashCode, unshared, expected);
             out.writeUTF((String) ref);
         }
         
@@ -106,9 +110,10 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
     private static class ClassReaderWriter extends IbisReaderWriter {
         public void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                AlternativeTypeInfo t, int hashCode, boolean unshared,
+                Class expected)
                 throws IOException {
-            super.writeHeader(out, ref, t, hashCode, unshared);
+            super.writeHeader(out, ref, t, hashCode, unshared, expected);
             out.writeUTF((String) ref);
         }
         
@@ -124,38 +129,39 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
 
     private static class PrimitiveReaderWriter extends IbisReaderWriter {
         public void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                AlternativeTypeInfo t, int hashCode, boolean unshared,
+                Class expected)
                 throws IOException {
         	if ( ref.getClass() == Boolean.class) {
-        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		super.writeHeader(out, ref, t, hashCode, unshared, expected);
         		out.writeBoolean(((Boolean)ref).booleanValue());
         	}
         	else if (ref.getClass() == Byte.class) {
-        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		super.writeHeader(out, ref, t, hashCode, unshared, expected);
         		out.writeByte(((Byte)ref).byteValue());
         	}
         	else if (ref.getClass() == Short.class) {
-        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		super.writeHeader(out, ref, t, hashCode, unshared, expected);
         		out.writeShort(((Short)ref).shortValue());
         	}
         	else if (ref.getClass() == Double.class) {
-        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		super.writeHeader(out, ref, t, hashCode, unshared, expected);
         		out.writeDouble(((Double)ref).doubleValue());
         	}
         	else if (ref.getClass() == Float.class) {
-        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		super.writeHeader(out, ref, t, hashCode, unshared, expected);
         		out.writeFloat(((Float)ref).floatValue());
         	}
         	else if (ref.getClass() == Integer.class) {
-        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		super.writeHeader(out, ref, t, hashCode, unshared, expected);
         		out.writeInt(((Integer)ref).intValue());
         	}
         	else if (ref.getClass() == Long.class) {
-        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		super.writeHeader(out, ref, t, hashCode, unshared, expected);
         		out.writeLong(((Long)ref).longValue());
         	}
         	else if (ref.getClass() == Character.class) {
-        		super.writeHeader(out, ref, t, hashCode, unshared);
+        		super.writeHeader(out, ref, t, hashCode, unshared, expected);
         		out.writeChar(((Character)ref).charValue());
         	}
         	else {
@@ -212,7 +218,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
     
     private static class NotSerializableReaderWriter extends IbisReaderWriter {
         public void writeObject(ObjectOutputStream out, Object ref,
-                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                AlternativeTypeInfo t, int hashCode, boolean unshared, Class expected)
                 throws IOException {
             throw new NotSerializableException("Not serializable: " +
                     t.clazz.getName());

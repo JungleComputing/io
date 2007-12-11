@@ -7,10 +7,10 @@ import java.io.IOException;
  */
 interface IbisWriter {
     void writeObject(ObjectOutputStream out, Object ref,
-            AlternativeTypeInfo t, int hashCode, boolean unshared)
+            AlternativeTypeInfo t, int hashCode, boolean unshared, Class expected)
             throws IOException;
 
     void writeHeader(ObjectOutputStream out, Object ref,
-            AlternativeTypeInfo t, int hashCode, boolean unshared)
+            AlternativeTypeInfo t, int hashCode, boolean unshared, Class expected)
             throws IOException;
 }
