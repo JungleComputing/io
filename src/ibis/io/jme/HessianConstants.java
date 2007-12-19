@@ -40,6 +40,7 @@ public interface HessianConstants {
 
 	public static final int STRING_BYTE_MAX = 0x1f;
 	public static final int STRING_BYTE_MIN = 0x00;
+	public static final int STRING_CHUNK_SIZE = (2 * Short.MAX_VALUE) + 1;
 
 	public static final int LONG_INT = 0x77;
 

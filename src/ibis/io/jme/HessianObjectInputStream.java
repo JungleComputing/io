@@ -258,32 +258,36 @@ long       ::= 'L' b7 b6 b5 b4 b3 b2 b1 b0
                                              #  0-31
 		 */
 		int b = in.read();
-		StringBuffer sb = new StringBuffer();
-		if (b >= STRING_BYTE_MIN && b <= STRING_BYTE_MAX) {
-			for(int i = 0; i < b; i++) {
-				int c = readUTF8Char();
-				sb.append(c);
-			}
+		if (b == 'N') {
+			return null;
 		}
-		else if (b == 's' || b == 'S') {
-			boolean lastChunk = false;
-			do {
+		StringBuffer sb = new StringBuffer();
+		boolean lastChunk = false;
+		do {
+			if (b >= STRING_BYTE_MIN && b <= STRING_BYTE_MAX) {
+				for(int i = 0; i < b; i++) {
+					int c = readUTF8Char();
+					sb.append(c);
+					lastChunk = true;
+				}
+			}
+			else if (b == 's' || b == 'S') {
 				if (b == 'S') {
 					lastChunk = true;
 				}
 				int length = (in.read() << 8) + in.read();
-				
+
 				for (int i = 0; i < length; i++) {
 					int c = readUTF8Char();
 					sb.append(c);
 				}
-				
+
 				b = in.read();
-			} while (!lastChunk);
-		}
-		else {
-			throw new StreamCorruptedException("Expecting string:" + b);
-		}
+			}
+			else {
+				throw new StreamCorruptedException("Expecting string:" + b);
+			}
+		} while (!lastChunk);
 		
 		return sb.toString();
 	}

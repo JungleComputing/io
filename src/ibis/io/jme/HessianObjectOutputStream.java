@@ -14,43 +14,43 @@ implements ObjectOutput, HessianConstants {
 		return "Hessian2";
 	}
 
-	public void writeArray(boolean[] source, int offset, int length) throws IOException {
+	public void writeArrayBoolean(boolean[] source, int offset, int length) throws IOException {
 		for (int i = 0; i < length; i++) {
 			writeBoolean(source[offset + i]);
 		}
 	}
-	public void writeArray(byte[] source, int offset, int length) throws IOException {
+	public void writeArrayByte(byte[] source, int offset, int length) throws IOException {
 		for (int i = 0; i < length; i++) {
 			writeByte(source[offset + i]);
 		}
 	}
-	public void writeArray(char[] source, int offset, int length) throws IOException {
+	public void writeArrayChar(char[] source, int offset, int length) throws IOException {
 		for (int i = 0; i < length; i++) {
 			writeChar(source[offset + i]);
 		}
 	}
-	public void writeArray(short[] source, int offset, int length) throws IOException {
+	public void writeArrayShort(short[] source, int offset, int length) throws IOException {
 		for (int i = 0; i < length; i++) {
 			writeShort(source[offset + i]);
 		}
 	}
-	public void writeArray(int[] source, int offset, int length) throws IOException {
+	public void writeArrayInt(int[] source, int offset, int length) throws IOException {
 		for (int i = 0; i < length; i++) {
 			writeInt(source[offset + i]);
 		}
 	}
-	public void writeArray(long[] source, int offset, int length) throws IOException {
+	public void writeArrayLong(long[] source, int offset, int length) throws IOException {
 		for (int i = 0; i < length; i++) {
 			writeLong(source[offset + i]);
 		}
 	}
-	public void writeArray(float[] source, int offset, int length) throws IOException {
+	public void writeArrayFloat(float[] source, int offset, int length) throws IOException {
 		for (int i = 0; i < length; i++) {
 			writeFloat(source[offset + i]);
 		}
 	}
 	
-	public void writeArray(double[] source, int offset, int length) throws IOException {
+	public void writeArrayDouble(double[] source, int offset, int length) throws IOException {
 		for (int i = 0; i < length; i++) {
 			writeDouble(source[offset + i]);
 		}
@@ -58,10 +58,10 @@ implements ObjectOutput, HessianConstants {
 	
 	public void writeBoolean(boolean value) throws IOException {
 		if (value) {
-			out.write('T');
+			out.write((byte)'T');
 		}
 		else {
-			out.write('F');
+			out.write((byte)'F');
 		}
 	}
 	public void writeByte(byte value) throws IOException {
@@ -121,7 +121,7 @@ implements ObjectOutput, HessianConstants {
 
 		long bits = Double.doubleToLongBits(value);
 
-		out.write('D');
+		out.write((byte)'D');
 		out.write((byte)bits >> 56);
 		out.write((byte)bits >> 48);
 		out.write((byte)bits >> 40);
@@ -175,6 +175,7 @@ implements ObjectOutput, HessianConstants {
 		out.write(bits);
 
 	}
+	
 	public void writeInt(int value) throws IOException {
 		/*
         		# 32-bit signed integer
@@ -196,7 +197,7 @@ implements ObjectOutput, HessianConstants {
 			out.write(value);
 		}
 		else {
-			out.write('I');
+			out.write((byte)'I');
 			out.write(value >> 24);
 			out.write(value >> 16);
 			out.write(value >> 8);
@@ -221,7 +222,44 @@ implements ObjectOutput, HessianConstants {
 		}
 	}
 	public void writeString(String val) throws IOException {
-		// TODO: Implement string writing.
+		/*
+        # UTF-8 encoded character string split into 64k chunks
+        ::= 's' b1 b0 <utf8-data> string  # non-final chunk
+        ::= 'S' b1 b0 <utf8-data>         # string of length
+                                          #  0-65535
+        ::= [x00-x1f] <utf8-data>         # string of length
+                                          #  0-31
+		 */
+		if (null == val) {
+			out.write((byte)'N');
+			return;
+		}
+		int length = val.length();
+		int remaining = length;
+		do {
+			if (remaining <= STRING_BYTE_MAX) {
+				out.write((byte)remaining);
+				for (int i = length - remaining; i < length; i++) {
+					writeUTF8Char(val.charAt(i));
+				}
+				remaining = 0;
+			}
+			else if (remaining <= STRING_CHUNK_SIZE) {
+				out.write((byte)'S');
+				for (int i = length - remaining; i < length; i++) {
+					writeUTF8Char(val.charAt(i));
+				}
+				remaining = 0;
+			}
+			else {
+				out.write((byte)'s');
+				int offset = length - remaining;
+				for (int i = 0;i < STRING_CHUNK_SIZE ; i++) {
+					writeUTF8Char(val.charAt(offset + i));
+				}
+				remaining -= STRING_CHUNK_SIZE;
+			}
+		} while (remaining > 0);
 	}
 	public void writeLong(long value) throws IOException {
 		if (value >= LONG_BYTE_MIN && value <= LONG_BYTE_MAX) {
