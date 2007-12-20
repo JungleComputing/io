@@ -760,24 +760,218 @@ public class ObjectInputStream extends DataSerializationInputStream {
             return readArrayDouble();
         default:
             int len = readInt();
-        /* TODO:
-         * We need to use a generator here because we
-         * can't reflect an instance of the array.
-            Object ref = java.lang.reflect.Array.newInstance(
-                    clazz.getComponentType(), len);
-            addObjectToCycleCheck(ref);
-            
+        	int dimension = 1;
+        	Object ref = null;
+        	// We have to find the inner type
+        	String className = clazz.getName();
+        	System.err.println(className);
 
-            for (int i = 0; i < len; i++) {
-                Object o = doReadObject(false);
-                ((Object[]) ref)[i] = o;
-            }
+        	// Determine the dimension of the array
+        	while (className.charAt(dimension) != 'L') {
+        		dimension++;
+        	}
+        	// We have to extract the inner type and use the generator
+        	String typeName = className.substring(dimension + 1,className.length()-1);
+        	System.err.println(typeName);
+        	System.err.println(dimension);
+        	ref = getSpecialCaseArray(typeName, len, dimension);
+        	if (null == ref) {
+        		AlternativeTypeInfo ati = AlternativeTypeInfo.getAlternativeTypeInfo(typeName);
+        		Generator g = ati.gen;
+        		if (null != g) {
+        			System.err.println(g);
+        			ref = ati.gen.new_array(len, dimension);
+        		}
+        		else {
+        			throw new NotSerializableException("Array type not supported: " + typeName);
+        		}
+        	}
 
-            return ref;
-            */
-        	throw new NotSerializableException("Arrays not yet supported.");
+        	addObjectToCycleCheck(ref);
+
+        	for (int i = 0; i < len; i++) {
+        		Object o = doReadObject(false);
+        		((Object[]) ref)[i] = o;
+        	}
+        	return ref;
         }
     }
+
+	Object getSpecialCaseArray(String typeName, int len, int dimension) {
+		Object ref = null;
+    	if (typeName.equals("java.lang.Byte")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new Byte[len];
+    			break;
+    		case 2:
+    			ref = new Byte[len][];
+    			break;
+    		case 3:
+    			ref = new Byte[len][][];
+    			break;
+    		case 4:
+    			ref = new Byte[len][][][];
+    			break;
+    		case 5:
+    			ref = new Byte[len][][][][];
+    			break;
+    		}
+    	}
+    	else if (typeName.equals("java.lang.Boolean")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new Boolean[len];
+    			break;
+    		case 2:
+    			ref = new Boolean[len][];
+    			break;
+    		case 3:
+    			ref = new Boolean[len][][];
+    			break;
+    		case 4:
+    			ref = new Boolean[len][][][];
+    			break;
+    		case 5:
+    			ref = new Boolean[len][][][][];
+    			break;
+    		}
+    	}
+    	else if (typeName.equals("java.lang.Character")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new Character[len];
+    			break;
+    		case 2:
+    			ref = new Character[len][];
+    			break;
+    		case 3:
+    			ref = new Character[len][][];
+    			break;
+    		case 4:
+    			ref = new Character[len][][][];
+    			break;
+    		case 5:
+    			ref = new Character[len][][][][];
+    			break;
+    		}
+    	}
+    	else if (typeName.equals("java.lang.Short")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new Short[len];
+    			break;
+    		case 2:
+    			ref = new Short[len][];
+    			break;
+    		case 3:
+    			ref = new Short[len][][];
+    			break;
+    		case 4:
+    			ref = new Short[len][][][];
+    			break;
+    		case 5:
+    			ref = new Short[len][][][][];
+    			break;
+    		}
+    	}
+    	else if (typeName.equals("java.lang.Integer")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new Integer[len];
+    			break;
+    		case 2:
+    			ref = new Integer[len][];
+    			break;
+    		case 3:
+    			ref = new Integer[len][][];
+    			break;
+    		case 4:
+    			ref = new Integer[len][][][];
+    			break;
+    		case 5:
+    			ref = new Integer[len][][][][];
+    			break;
+    		}
+    	}
+    	else if (typeName.equals("java.lang.Double")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new Double[len];
+    			break;
+    		case 2:
+    			ref = new Double[len][];
+    			break;
+    		case 3:
+    			ref = new Double[len][][];
+    			break;
+    		case 4:
+    			ref = new Double[len][][][];
+    			break;
+    		case 5:
+    			ref = new Double[len][][][][];
+    			break;
+    		}
+    	}
+    	else if (typeName.equals("java.lang.Long")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new Long[len];
+    			break;
+    		case 2:
+    			ref = new Long[len][];
+    			break;
+    		case 3:
+    			ref = new Long[len][][];
+    			break;
+    		case 4:
+    			ref = new Long[len][][][];
+    			break;
+    		case 5:
+    			ref = new Long[len][][][][];
+    			break;
+    		}
+    	}
+    	else if (typeName.equals("java.lang.Float")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new Float[len];
+    			break;
+    		case 2:
+    			ref = new Float[len][];
+    			break;
+    		case 3:
+    			ref = new Float[len][][];
+    			break;
+    		case 4:
+    			ref = new Float[len][][][];
+    			break;
+    		case 5:
+    			ref = new Float[len][][][][];
+    			break;
+    		}
+    	}
+    	else if (typeName.equals("java.lang.String")) {
+    		switch(dimension) {
+    		case 1:
+    			ref = new String[len];
+    			break;
+    		case 2:
+    			ref = new String[len][];
+    			break;
+    		case 3:
+    			ref = new String[len][][];
+    			break;
+    		case 4:
+    			ref = new String[len][][][];
+    			break;
+    		case 5:
+    			ref = new String[len][][][][];
+    			break;
+    		}
+    	}
+    	return ref;
+	}
 
     /**
      * This method tries to load a class given its name. It tries the

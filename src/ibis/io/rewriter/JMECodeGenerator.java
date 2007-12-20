@@ -10,6 +10,7 @@ import org.apache.bcel.generic.AALOAD;
 import org.apache.bcel.generic.AASTORE;
 import org.apache.bcel.generic.ACONST_NULL;
 import org.apache.bcel.generic.ALOAD;
+import org.apache.bcel.generic.ANEWARRAY;
 import org.apache.bcel.generic.ARETURN;
 import org.apache.bcel.generic.ARRAYLENGTH;
 import org.apache.bcel.generic.ASTORE;
@@ -17,6 +18,7 @@ import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ClassGen;
+import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.DUP;
 import org.apache.bcel.generic.GOTO;
 import org.apache.bcel.generic.IAND;
@@ -35,6 +37,7 @@ import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.LDC;
+import org.apache.bcel.generic.MULTIANEWARRAY;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
@@ -43,6 +46,7 @@ import org.apache.bcel.generic.RETURN;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.SIPUSH;
 import org.apache.bcel.generic.SWITCH;
+import org.apache.bcel.generic.TABLESWITCH;
 import org.apache.bcel.generic.Type;
 
 /**
@@ -1337,6 +1341,49 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         method.setMaxLocals();
         iogenGen.addMethod(method.getMethod());
 
+        // Now we build the new_array function
+        
+        // Build the base of the function
+        il = new InstructionList();
+        il.append(new ACONST_NULL());
+        il.append(new ASTORE(3));
+        il.append(new ILOAD(2));
+        InstructionHandle done = il.append(new ALOAD(3));
+        il.append(new ARETURN());
+        
+        // Now build the switch
+        ConstantPoolGen cp = iogenGen.getConstantPool();
+        int index;
+        InstructionHandle[] handles = new InstructionHandle[5];
+        
+        int i = 0;
+        String arrayName = classname;
+        do {
+        	handles[i++] = il.insert(done, new ILOAD(1));
+        	index = cp.addClass(arrayName);
+        	System.err.println("Added : " + arrayName + " : " + index + " to cp.");
+        	il.insert(done, new ANEWARRAY(index));
+        	il.insert(done, new ASTORE(3));
+        	if (handles[handles.length - 1] == null) {
+        		il.insert(done, new GOTO(done));
+        	}
+        	if (!arrayName.startsWith("[")) {
+        		arrayName = "L" + arrayName + ";";
+        	}
+        	arrayName = "[" + arrayName;
+        	System.err.println("Generating " + arrayName);
+        } while (handles[handles.length - 1] == null);
+        
+        int values[] = {1, 2, 3, 4, 5};
+        il.insert(handles[0], new SWITCH(values, handles, done));
+
+        method = new MethodGen(Constants.ACC_PUBLIC, Type.getType(Object[].class),
+        		new Type[] {Type.INT, Type.INT}, new String[] {"len", "dimension"},
+        		"new_array", name, il, iogenGen.getConstantPool());
+        method.setMaxStack(1);
+        method.setMaxLocals(4);
+        iogenGen.addMethod(method.getMethod());
+        
         return iogenGen.getJavaClass();
     }
 

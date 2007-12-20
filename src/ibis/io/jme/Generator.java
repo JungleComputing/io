@@ -19,4 +19,6 @@ public abstract class Generator {
     public abstract Object generated_newInstance(
             ObjectInputStream in)
                     throws IOException, ClassNotFoundException;
+    
+    public abstract Object[] new_array(int len, int dimension);
 }
