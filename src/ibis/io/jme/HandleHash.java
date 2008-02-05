@@ -347,9 +347,11 @@ public final class HandleHash extends IOProperties {
         }
     }
 
+    /* No finalizers allowed in JME.
     public final void finalize() {
         statistics();
     }
+    */
 
     final void statistics() {
         if (STATS) {

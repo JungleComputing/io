@@ -6,10 +6,11 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.Priority;
+// Log4JME doesn't actually work on real devices so commenting out for now.
+//import org.apache.log4j.ConsoleAppender;
+//import org.apache.log4j.Logger;
+//import org.apache.log4j.PatternLayout;
+//import org.apache.log4j.Priority;
 
 /**
  * Collects all system properties used by the ibis.io package.
@@ -25,6 +26,9 @@ public class IOProperties implements Constants {
     /** Property name of the property file. */
     public static final String PROPERTIES_FILE = PREFIX + "properties.file";
     
+    static final Logger logger = new Logger();
+    
+    /*
     static final Logger logger;
     
 	static {
@@ -39,6 +43,7 @@ public class IOProperties implements Constants {
 			logger.debug("Logger Initialized.");
 		}
 	}
+     */
 
     static final String s_stats_nonrewritten = PREFIX
             + "stats.nonrewritten";
