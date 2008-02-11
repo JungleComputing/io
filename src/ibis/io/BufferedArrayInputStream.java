@@ -6,14 +6,19 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.log4j.Logger;
+
 /**
  * This is a complete implementation of <code>DataInputStream</code>.
  * It is built on top of an <code>InputStream</code>.
  * There is no need to put any buffering inbetween. This implementation
  * does all the buffering needed.
  */
-public final class BufferedArrayInputStream extends DataInputStream
-        implements Constants {
+public final class BufferedArrayInputStream extends DataInputStream {
+    
+    private static final boolean DEBUG = IOProperties.DEBUG;
+    
+    private static final Logger logger = Logger.getLogger(BufferedArrayInputStream.class);
 
     /** The buffer size. */
     private final int BUF_SIZE;
@@ -93,13 +98,13 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(boolean[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("readArray(boolean[" + off + " ... "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readArray(boolean[" + off + " ... "
                     + (off + len) + "])");
         }
 
         int useable, converted;
-        int to_convert = len * SIZEOF_BOOLEAN;
+        int to_convert = len * Constants.SIZEOF_BOOLEAN;
 
         while (buffered_bytes < to_convert) {
             // not enough data in the buffer
@@ -109,13 +114,13 @@ public final class BufferedArrayInputStream extends DataInputStream
                 fillBuffer(min(BUF_SIZE, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
-                useable = buffered_bytes / SIZEOF_BOOLEAN;
+                useable = buffered_bytes / Constants.SIZEOF_BOOLEAN;
                 conversion.byte2boolean(buffer, index, a, off, useable);
 
                 len -= useable;
                 off += useable;
 
-                converted = useable * SIZEOF_BOOLEAN;
+                converted = useable * Constants.SIZEOF_BOOLEAN;
                 index += converted;
                 buffered_bytes -= converted;
                 to_convert -= converted;
@@ -138,8 +143,8 @@ public final class BufferedArrayInputStream extends DataInputStream
     }
 
     public void readArray(byte[] a, int off, int len) throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("readArray(byte[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readArray(byte[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -174,13 +179,13 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(short[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("readArray(char[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readArray(char[" + off + " ... " + (off + len)
                     + "])");
         }
 
         int useable, converted;
-        int to_convert = len * SIZEOF_SHORT;
+        int to_convert = len * Constants.SIZEOF_SHORT;
 
         while (buffered_bytes < to_convert) {
             // not enough data in the buffer
@@ -190,13 +195,13 @@ public final class BufferedArrayInputStream extends DataInputStream
                 fillBuffer(min(BUF_SIZE, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
-                useable = buffered_bytes / SIZEOF_SHORT;
+                useable = buffered_bytes / Constants.SIZEOF_SHORT;
                 conversion.byte2short(buffer, index, a, off, useable);
 
                 len -= useable;
                 off += useable;
 
-                converted = useable * SIZEOF_SHORT;
+                converted = useable * Constants.SIZEOF_SHORT;
                 index += converted;
                 buffered_bytes -= converted;
                 to_convert -= converted;
@@ -220,13 +225,13 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(char[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("readArray(char[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readArray(char[" + off + " ... " + (off + len)
                     + "])");
         }
 
         int useable, converted;
-        int to_convert = len * SIZEOF_CHAR;
+        int to_convert = len * Constants.SIZEOF_CHAR;
 
         while (buffered_bytes < to_convert) {
             // not enough data in the buffer
@@ -236,13 +241,13 @@ public final class BufferedArrayInputStream extends DataInputStream
                 fillBuffer(min(BUF_SIZE, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
-                useable = buffered_bytes / SIZEOF_CHAR;
+                useable = buffered_bytes / Constants.SIZEOF_CHAR;
                 conversion.byte2char(buffer, index, a, off, useable);
 
                 len -= useable;
                 off += useable;
 
-                converted = useable * SIZEOF_CHAR;
+                converted = useable * Constants.SIZEOF_CHAR;
                 index += converted;
                 buffered_bytes -= converted;
                 to_convert -= converted;
@@ -266,13 +271,13 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(int[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("readArray(int[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readArray(int[" + off + " ... " + (off + len)
                     + "])");
         }
 
         int useable, converted;
-        int to_convert = len * SIZEOF_INT;
+        int to_convert = len * Constants.SIZEOF_INT;
 
         while (buffered_bytes < to_convert) {
             // not enough data in the buffer
@@ -282,14 +287,14 @@ public final class BufferedArrayInputStream extends DataInputStream
                 fillBuffer(min(BUF_SIZE, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
-                useable = buffered_bytes / SIZEOF_INT;
+                useable = buffered_bytes / Constants.SIZEOF_INT;
 
                 conversion.byte2int(buffer, index, a, off, useable);
 
                 len -= useable;
                 off += useable;
 
-                converted = useable * SIZEOF_INT;
+                converted = useable * Constants.SIZEOF_INT;
                 index += converted;
                 buffered_bytes -= converted;
                 to_convert -= converted;
@@ -314,13 +319,13 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(long[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("readArray(long[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readArray(long[" + off + " ... " + (off + len)
                     + "])");
         }
 
         int useable, converted;
-        int to_convert = len * SIZEOF_LONG;
+        int to_convert = len * Constants.SIZEOF_LONG;
 
         while (buffered_bytes < to_convert) {
             // not enough data in the buffer
@@ -330,13 +335,13 @@ public final class BufferedArrayInputStream extends DataInputStream
                 fillBuffer(min(BUF_SIZE, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
-                useable = buffered_bytes / SIZEOF_LONG;
+                useable = buffered_bytes / Constants.SIZEOF_LONG;
                 conversion.byte2long(buffer, index, a, off, useable);
 
                 len -= useable;
                 off += useable;
 
-                converted = useable * SIZEOF_LONG;
+                converted = useable * Constants.SIZEOF_LONG;
                 index += converted;
                 buffered_bytes -= converted;
                 to_convert -= converted;
@@ -360,13 +365,13 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(float[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("readArray(float[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readArray(float[" + off + " ... " + (off + len)
                     + "])");
         }
 
         int useable, converted;
-        int to_convert = len * SIZEOF_FLOAT;
+        int to_convert = len * Constants.SIZEOF_FLOAT;
 
         while (buffered_bytes < to_convert) {
             // not enough data in the buffer
@@ -376,13 +381,13 @@ public final class BufferedArrayInputStream extends DataInputStream
                 fillBuffer(min(BUF_SIZE, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
-                useable = buffered_bytes / SIZEOF_FLOAT;
+                useable = buffered_bytes / Constants.SIZEOF_FLOAT;
                 conversion.byte2float(buffer, index, a, off, useable);
 
                 len -= useable;
                 off += useable;
 
-                converted = useable * SIZEOF_FLOAT;
+                converted = useable * Constants.SIZEOF_FLOAT;
                 index += converted;
                 buffered_bytes -= converted;
                 to_convert -= converted;
@@ -406,13 +411,13 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(double[] a, int off, int len) throws IOException {
 
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("readArray(double[" + off + " ... "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readArray(double[" + off + " ... "
                     + (off + len) + "])");
         }
 
         int useable, converted;
-        int to_convert = len * SIZEOF_DOUBLE;
+        int to_convert = len * Constants.SIZEOF_DOUBLE;
 
         while (buffered_bytes < to_convert) {
             // not enough data in the buffer
@@ -422,13 +427,13 @@ public final class BufferedArrayInputStream extends DataInputStream
                 fillBuffer(min(BUF_SIZE, to_convert));
             } else {
                 // first, copy the data we do have to 'a' .
-                useable = buffered_bytes / SIZEOF_DOUBLE;
+                useable = buffered_bytes / Constants.SIZEOF_DOUBLE;
                 conversion.byte2double(buffer, index, a, off, useable);
 
                 len -= useable;
                 off += useable;
 
-                converted = useable * SIZEOF_DOUBLE;
+                converted = useable * Constants.SIZEOF_DOUBLE;
                 index += converted;
                 buffered_bytes -= converted;
                 to_convert -= converted;
@@ -464,55 +469,55 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public char readChar() throws IOException {
         char v;
-        fillBuffer(SIZEOF_CHAR);
+        fillBuffer(Constants.SIZEOF_CHAR);
         v = conversion.byte2char(buffer, index);
-        index += SIZEOF_CHAR;
-        buffered_bytes -= SIZEOF_CHAR;
+        index += Constants.SIZEOF_CHAR;
+        buffered_bytes -= Constants.SIZEOF_CHAR;
         return v;
     }
 
     public short readShort() throws IOException {
         short v;
-        fillBuffer(SIZEOF_SHORT);
+        fillBuffer(Constants.SIZEOF_SHORT);
         v = conversion.byte2short(buffer, index);
-        index += SIZEOF_SHORT;
-        buffered_bytes -= SIZEOF_SHORT;
+        index += Constants.SIZEOF_SHORT;
+        buffered_bytes -= Constants.SIZEOF_SHORT;
         return v;
     }
 
     public int readInt() throws IOException {
         int v;
-        fillBuffer(SIZEOF_INT);
+        fillBuffer(Constants.SIZEOF_INT);
         v = conversion.byte2int(buffer, index);
-        index += SIZEOF_INT;
-        buffered_bytes -= SIZEOF_INT;
+        index += Constants.SIZEOF_INT;
+        buffered_bytes -= Constants.SIZEOF_INT;
         return v;
     }
 
     public long readLong() throws IOException {
         long v;
-        fillBuffer(SIZEOF_LONG);
+        fillBuffer(Constants.SIZEOF_LONG);
         v = conversion.byte2long(buffer, index);
-        index += SIZEOF_LONG;
-        buffered_bytes -= SIZEOF_LONG;
+        index += Constants.SIZEOF_LONG;
+        buffered_bytes -= Constants.SIZEOF_LONG;
         return v;
     }
 
     public float readFloat() throws IOException {
         float v;
-        fillBuffer(SIZEOF_FLOAT);
+        fillBuffer(Constants.SIZEOF_FLOAT);
         v = conversion.byte2float(buffer, index);
-        index += SIZEOF_FLOAT;
-        buffered_bytes -= SIZEOF_FLOAT;
+        index += Constants.SIZEOF_FLOAT;
+        buffered_bytes -= Constants.SIZEOF_FLOAT;
         return v;
     }
 
     public double readDouble() throws IOException {
         double v;
-        fillBuffer(SIZEOF_DOUBLE);
+        fillBuffer(Constants.SIZEOF_DOUBLE);
         v = conversion.byte2double(buffer, index);
-        index += SIZEOF_DOUBLE;
-        buffered_bytes -= SIZEOF_DOUBLE;
+        index += Constants.SIZEOF_DOUBLE;
+        buffered_bytes -= Constants.SIZEOF_DOUBLE;
         return v;
     }
 
@@ -521,8 +526,8 @@ public final class BufferedArrayInputStream extends DataInputStream
     }
 
     public int read(byte[] a, int off, int len) throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("read(byte[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("read(byte[" + off + " ... " + (off + len)
                     + "])");
         }
 

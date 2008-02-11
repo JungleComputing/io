@@ -13,11 +13,20 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 
+import org.apache.log4j.Logger;
+
 /**
  * This is the <code>SerializationInputStream</code> version that is used
  * for Ibis serialization.
  */
 public class IbisSerializationInputStream extends DataSerializationInputStream {
+    
+    private static final Logger logger = Logger.getLogger(IbisSerializationInputStream.class);
+    
+    private static final boolean DEBUG = IOProperties.DEBUG;
+    
+    private static final boolean ASSERTS = IOProperties.ASSERTS;
+    
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_IBIS_SERIALIZATION = false;
 
@@ -26,7 +35,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * via the uninitialized native creator.
      */
     private static final boolean STATS_NONREWRITTEN
-            = properties.getBooleanProperty(s_stats_nonrewritten);
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
     static Hashtable<Class<?>, Integer> nonRewritten = null;
@@ -148,35 +157,35 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     /** <code>AlternativeTypeInfo</code> for <code>boolean</code> arrays. */
     private static AlternativeTypeInfo booleanArrayInfo
-            = AlternativeTypeInfo.getAlternativeTypeInfo(classBooleanArray);
+            = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classBooleanArray);
 
     /** <code>AlternativeTypeInfo</code> for <code>byte</code> arrays. */
     private static AlternativeTypeInfo byteArrayInfo
-            = AlternativeTypeInfo.getAlternativeTypeInfo(classByteArray);
+            = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classByteArray);
 
     /** <code>AlternativeTypeInfo</code> for <code>char</code> arrays. */
     private static AlternativeTypeInfo charArrayInfo
-            = AlternativeTypeInfo.getAlternativeTypeInfo(classCharArray);
+            = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classCharArray);
 
     /** <code>AlternativeTypeInfo</code> for <code>short</code> arrays. */
     private static AlternativeTypeInfo shortArrayInfo
-            = AlternativeTypeInfo.getAlternativeTypeInfo(classShortArray);
+            = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classShortArray);
 
     /** <code>AlternativeTypeInfo</code> for <code>int</code> arrays. */
     private static AlternativeTypeInfo intArrayInfo
-            = AlternativeTypeInfo.getAlternativeTypeInfo(classIntArray);
+            = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classIntArray);
 
     /** <code>AlternativeTypeInfo</code> for <code>long</code> arrays. */
     private static AlternativeTypeInfo longArrayInfo
-            = AlternativeTypeInfo.getAlternativeTypeInfo(classLongArray);
+            = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classLongArray);
 
     /** <code>AlternativeTypeInfo</code> for <code>float</code> arrays. */
     private static AlternativeTypeInfo floatArrayInfo
-            = AlternativeTypeInfo.getAlternativeTypeInfo(classFloatArray);
+            = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classFloatArray);
 
     /** <code>AlternativeTypeInfo</code> for <code>double</code> arrays. */
     private static AlternativeTypeInfo doubleArrayInfo
-            = AlternativeTypeInfo.getAlternativeTypeInfo(classDoubleArray);
+            = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classDoubleArray);
 
     static {
         String clName = System.getProperty(IOProperties.s_classloader);
@@ -247,7 +256,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             startTimer();
         }
         try {
-            readArrayHeader(classBooleanArray, len);
+            readArrayHeader(Constants.classBooleanArray, len);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled() && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
@@ -266,7 +275,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             startTimer();
         }
         try {
-            readArrayHeader(classByteArray, len);
+            readArrayHeader(Constants.classByteArray, len);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
@@ -285,7 +294,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             startTimer();
         }
         try {
-            readArrayHeader(classCharArray, len);
+            readArrayHeader(Constants.classCharArray, len);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
@@ -304,7 +313,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             startTimer();
         }
         try {
-            readArrayHeader(classShortArray, len);
+            readArrayHeader(Constants.classShortArray, len);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
@@ -323,7 +332,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             startTimer();
         }
         try {
-            readArrayHeader(classIntArray, len);
+            readArrayHeader(Constants.classIntArray, len);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
@@ -342,7 +351,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             startTimer();
         }
         try {
-            readArrayHeader(classLongArray, len);
+            readArrayHeader(Constants.classLongArray, len);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
@@ -361,7 +370,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             startTimer();
         }
         try {
-            readArrayHeader(classFloatArray, len);
+            readArrayHeader(Constants.classFloatArray, len);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
@@ -380,7 +389,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             startTimer();
         }
         try {
-            readArrayHeader(classDoubleArray, len);
+            readArrayHeader(Constants.classDoubleArray, len);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError",
@@ -558,20 +567,20 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         if (do_types) {
             types = new IbisVector();
             types.add(0, null); // Vector requires this
-            types.add(TYPE_BOOLEAN, booleanArrayInfo);
-            types.add(TYPE_BYTE, byteArrayInfo);
-            types.add(TYPE_CHAR, charArrayInfo);
-            types.add(TYPE_SHORT, shortArrayInfo);
-            types.add(TYPE_INT, intArrayInfo);
-            types.add(TYPE_LONG, longArrayInfo);
-            types.add(TYPE_FLOAT, floatArrayInfo);
-            types.add(TYPE_DOUBLE, doubleArrayInfo);
+            types.add(Constants.TYPE_BOOLEAN, booleanArrayInfo);
+            types.add(Constants.TYPE_BYTE, byteArrayInfo);
+            types.add(Constants.TYPE_CHAR, charArrayInfo);
+            types.add(Constants.TYPE_SHORT, shortArrayInfo);
+            types.add(Constants.TYPE_INT, intArrayInfo);
+            types.add(Constants.TYPE_LONG, longArrayInfo);
+            types.add(Constants.TYPE_FLOAT, floatArrayInfo);
+            types.add(Constants.TYPE_DOUBLE, doubleArrayInfo);
 
-            next_type = PRIMITIVE_TYPES;
+            next_type = Constants.PRIMITIVE_TYPES;
         }
 
         objects.clear();
-        next_handle = CONTROL_HANDLES;
+        next_handle = Constants.CONTROL_HANDLES;
     }
 
     /**
@@ -610,13 +619,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         /* this replaces the checks for the reset handle
          everywhere else. --N */
         for (;;) {
-            if (handle == RESET_HANDLE) {
+            if (handle == Constants.RESET_HANDLE) {
                 if (DEBUG && logger.isDebugEnabled()) {
                     logger.debug("received a RESET");
                 }
                 do_reset(false);
                 handle = readInt();
-            } else if (handle == CLEAR_HANDLE) {
+            } else if (handle == Constants.CLEAR_HANDLE) {
                 if (DEBUG && logger.isDebugEnabled()) {
                     logger.debug("received a CLEAR");
                 }
@@ -646,25 +655,25 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         int handle = readHandle();
 
-        if (handle == NUL_HANDLE) {
+        if (handle == Constants.NUL_HANDLE) {
             if (TIME_IBIS_SERIALIZATION) {
                 stopTimer();
             }
             return null;
         }
 
-        if ((handle & TYPE_BIT) == 0) {
+        if ((handle & Constants.TYPE_BIT) == 0) {
             /* Ah, it's a handle. Look it up, return the stored ptr */
             Class<?> o = (Class<?>) objects.get(handle);
 
             if (DEBUG && logger.isDebugEnabled()) {
-                logger.debug("readobj: handle = " + (handle - CONTROL_HANDLES)
+                logger.debug("readobj: handle = " + (handle - Constants.CONTROL_HANDLES)
                         + " obj = " + o);
             }
             return o;
         }
 
-        readType(handle & TYPE_MASK);
+        readType(handle & Constants.TYPE_MASK);
 
         String s = readUTF();
         Class<?> c = getClassFromName(s);
@@ -695,12 +704,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         int type = readHandle();
 
-        if ((type & TYPE_BIT) == 0) {
+        if ((type & Constants.TYPE_BIT) == 0) {
             throw new StreamCorruptedException(
                     "Array slice header but I receive a HANDLE!");
         }
 
-        Class<?> in_clazz = readType(type & TYPE_MASK).clazz;
+        Class<?> in_clazz = readType(type & Constants.TYPE_MASK).clazz;
         int in_len = readInt();
 
         if (ASSERTS && !clazz.isAssignableFrom(in_clazz)) {
@@ -762,10 +771,10 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             ClassNotFoundException {
         int handle_or_type = readHandle();
 
-        if ((handle_or_type & TYPE_BIT) == 0) {
+        if ((handle_or_type & Constants.TYPE_BIT) == 0) {
             // Includes NUL_HANDLE.
             if (DEBUG && logger.isDebugEnabled()) {
-                if (handle_or_type == NUL_HANDLE) {
+                if (handle_or_type == Constants.NUL_HANDLE) {
                     logger.debug("readKnownTypeHeader -> read NUL_HANDLE");
                 } else {
                     logger.debug("readKnownTypeHeader -> read OLD HANDLE "
@@ -775,7 +784,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             return handle_or_type;
         }
 
-        handle_or_type &= TYPE_MASK;
+        handle_or_type &= Constants.TYPE_MASK;
         if (handle_or_type >= next_type) {
             readType(handle_or_type);
         }
@@ -812,21 +821,21 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
 
         switch (type) {
-        case TYPE_BOOLEAN:
+        case Constants.TYPE_BOOLEAN:
             return readArrayBoolean();
-        case TYPE_BYTE:
+        case Constants.TYPE_BYTE:
             return readArrayByte();
-        case TYPE_SHORT:
+        case Constants.TYPE_SHORT:
             return readArrayShort();
-        case TYPE_CHAR:
+        case Constants.TYPE_CHAR:
             return readArrayChar();
-        case TYPE_INT:
+        case Constants.TYPE_INT:
             return readArrayInt();
-        case TYPE_LONG:
+        case Constants.TYPE_LONG:
             return readArrayLong();
-        case TYPE_FLOAT:
+        case Constants.TYPE_FLOAT:
             return readArrayFloat();
-        case TYPE_DOUBLE:
+        case Constants.TYPE_DOUBLE:
             return readArrayDouble();
         default:
             int len = readInt();
@@ -1533,7 +1542,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         int handle = readHandle();
 
-        if (handle == NUL_HANDLE) {
+        if (handle == Constants.NUL_HANDLE) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("readString: --> null");
             }
@@ -1543,7 +1552,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             return null;
         }
 
-        if ((handle & TYPE_BIT) == 0) {
+        if ((handle & Constants.TYPE_BIT) == 0) {
             /* Ah, it's a handle. Look it up, return the stored ptr */
             String o = (String) objects.get(handle);
 
@@ -1558,7 +1567,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
 
         try {
-            readType(handle & TYPE_MASK);
+            readType(handle & Constants.TYPE_MASK);
         } catch (ClassNotFoundException e) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("Caught exception, rethrow as SerializationError", e);
@@ -1594,14 +1603,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         int handle_or_type = readHandle();
 
-        if (handle_or_type == NUL_HANDLE) {
+        if (handle_or_type == Constants.NUL_HANDLE) {
             if (TIME_IBIS_SERIALIZATION) {
                 stopTimer();
             }
             return null;
         }
 
-        if ((handle_or_type & TYPE_BIT) == 0) {
+        if ((handle_or_type & Constants.TYPE_BIT) == 0) {
             // Ah, it's a handle. Look it up, return the stored ptr,
             // unless it should be unshared.
             if (unshared) {
@@ -1632,7 +1641,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             unshared_handle = next_handle;
         }
 
-        int type = handle_or_type & TYPE_MASK;
+        int type = handle_or_type & Constants.TYPE_MASK;
         AlternativeTypeInfo t = readType(type);
 
         if (DEBUG && logger.isDebugEnabled()) {

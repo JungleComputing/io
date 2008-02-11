@@ -10,10 +10,10 @@ import java.util.Hashtable;
  * Exports a single static method that creates a deep copy of any
  * serializable object.
  */
-public class DeepCopy extends IOProperties {
+public class DeepCopy {
 
     private static final String serialization
-            = properties.getProperty(s_deepcopy_ser, "ibis");
+            = IOProperties.properties.getProperty(IOProperties.s_deepcopy_ser, "ibis");
 
     /** Prevent creation of a DeepCopy object. */
     private DeepCopy() {

@@ -4,6 +4,8 @@ package ibis.io;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
  * for data serialization. With data serialization, you can only write
@@ -11,15 +13,24 @@ import java.io.IOException;
  * for Ibis serialization.
  */
 public class DataSerializationOutputStream extends ByteSerializationOutputStream {
+    
+    private static final boolean DEBUG = IOProperties.DEBUG;
+    
+    private static final int SMALL_ARRAY_BOUND = IOProperties.SMALL_ARRAY_BOUND;
+    
+    private static final int ARRAY_BUFFER_SIZE = IOProperties.ARRAY_BUFFER_SIZE;
+    
     /** When true, no buffering in this layer. */
     private static final boolean NO_ARRAY_BUFFERS
-            = properties.getBooleanProperty(s_no_array_buffers);
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_no_array_buffers);
+    
+    private static Logger logger = Logger.getLogger(DataSerializationOutputStream.class);
 
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION = true;
 
     /** Boolean count is not used, use it for arrays. */
-    static final int TYPE_ARRAY = TYPE_BOOLEAN;
+    static final int TYPE_ARRAY = Constants.TYPE_BOOLEAN;
 
     /** Storage for bytes (or booleans) written. */
     private byte[] byte_buffer;
@@ -113,7 +124,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     private short[] indices_short;
 
     /** For each. */
-    private boolean[] touched = new boolean[PRIMITIVE_TYPES];
+    private boolean[] touched = new boolean[Constants.PRIMITIVE_TYPES];
 
     /**
      * Constructor with a <code>DataOutputStream</code>.
@@ -125,15 +136,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         super(out);
         int bufferSize = out.bufferSize();
         if (bufferSize <= 0) {
-            bufferSize = BUFFER_SIZE;
+            bufferSize = IOProperties.BUFFER_SIZE;
         }
-        BYTE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_BYTE);
-        CHAR_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_CHAR);
-        SHORT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_SHORT);
-        INT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_INT);
-        LONG_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_LONG);
-        FLOAT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_FLOAT);
-        DOUBLE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_DOUBLE);
+        BYTE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_BYTE);
+        CHAR_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_CHAR);
+        SHORT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_SHORT);
+        INT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_INT);
+        LONG_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_LONG);
+        FLOAT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_FLOAT);
+        DOUBLE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_DOUBLE);
 
         if (! NO_ARRAY_BUFFERS) {
             initArrays();
@@ -176,27 +187,27 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+        } else if (len < IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_BOOLEAN) {
             /* Maybe lift the check from the writeBoolean? */
             for (int i = offset; i < offset + len; i++) {
                 writeBoolean(ref[i]);
             }
 
         } else {
-            if (array_index == ARRAY_BUFFER_SIZE) {
+            if (array_index == IOProperties.ARRAY_BUFFER_SIZE) {
                 flush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayBoolean: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + TYPE_BOOLEAN);
+                        + " len: " + len + " type: " + Constants.TYPE_BOOLEAN);
             }
-            array[array_index].type = TYPE_BOOLEAN;
+            array[array_index].type = Constants.TYPE_BOOLEAN;
             array[array_index].offset = offset;
             array[array_index].len = len;
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref, TYPE_BOOLEAN, len);
+            addStatSendArray(ref, Constants.TYPE_BOOLEAN, len);
         }
     }
 
@@ -214,7 +225,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
+        } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_BYTE) {
             for (int i = offset; i < offset + len; i++) {
                 writeByte(ref[i]);
             }
@@ -225,15 +236,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayByte: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + TYPE_BYTE);
+                        + " len: " + len + " type: " + Constants.TYPE_BYTE);
             }
-            array[array_index].type = TYPE_BYTE;
+            array[array_index].type = Constants.TYPE_BYTE;
             array[array_index].offset = offset;
             array[array_index].len = len;
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref, TYPE_BYTE, len);
+            addStatSendArray(ref, Constants.TYPE_BYTE, len);
         }
     }
 
@@ -251,7 +262,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
+        } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_CHAR) {
             for (int i = offset; i < offset + len; i++) {
                 writeChar(ref[i]);
             }
@@ -262,15 +273,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayChar: " + new String(ref) + " offset: "
-                        + offset + " len: " + len + " type: " + TYPE_CHAR);
+                        + offset + " len: " + len + " type: " + Constants.TYPE_CHAR);
             }
-            array[array_index].type = TYPE_CHAR;
+            array[array_index].type = Constants.TYPE_CHAR;
             array[array_index].offset = offset;
             array[array_index].len = len;
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref, TYPE_CHAR, len);
+            addStatSendArray(ref, Constants.TYPE_CHAR, len);
         }
     }
 
@@ -288,7 +299,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
+        } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_SHORT) {
             for (int i = offset; i < offset + len; i++) {
                 writeShort(ref[i]);
             }
@@ -299,15 +310,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayShort: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + TYPE_SHORT);
+                        + " len: " + len + " type: " + Constants.TYPE_SHORT);
             }
-            array[array_index].type = TYPE_SHORT;
+            array[array_index].type = Constants.TYPE_SHORT;
             array[array_index].offset = offset;
             array[array_index].len = len;
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref, TYPE_SHORT, len);
+            addStatSendArray(ref,Constants. TYPE_SHORT, len);
         }
     }
 
@@ -325,7 +336,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_INT) {
+        } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_INT) {
             for (int i = offset; i < offset + len; i++) {
                 writeInt(ref[i]);
             }
@@ -336,15 +347,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayInt: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + TYPE_INT);
+                        + " len: " + len + " type: " + Constants.TYPE_INT);
             }
-            array[array_index].type = TYPE_INT;
+            array[array_index].type = Constants.TYPE_INT;
             array[array_index].offset = offset;
             array[array_index].len = len;
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref, TYPE_INT, len);
+            addStatSendArray(ref, Constants.TYPE_INT, len);
         }
     }
 
@@ -362,26 +373,26 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_LONG) {
+        } else if (len < IOProperties.SMALL_ARRAY_BOUND / Constants.SIZEOF_LONG) {
             for (int i = offset; i < offset + len; i++) {
                 writeLong(ref[i]);
             }
 
         } else {
-            if (array_index == ARRAY_BUFFER_SIZE) {
+            if (array_index == IOProperties.ARRAY_BUFFER_SIZE) {
                 flush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayLong: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + TYPE_LONG);
+                        + " len: " + len + " type: " + Constants.TYPE_LONG);
             }
-            array[array_index].type = TYPE_LONG;
+            array[array_index].type = Constants.TYPE_LONG;
             array[array_index].offset = offset;
             array[array_index].len = len;
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref, TYPE_LONG, len);
+            addStatSendArray(ref, Constants.TYPE_LONG, len);
         }
     }
 
@@ -399,7 +410,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
+        } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_FLOAT) {
             for (int i = offset; i < offset + len; i++) {
                 writeFloat(ref[i]);
             }
@@ -410,15 +421,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayFloat: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + TYPE_FLOAT);
+                        + " len: " + len + " type: " + Constants.TYPE_FLOAT);
             }
-            array[array_index].type = TYPE_FLOAT;
+            array[array_index].type = Constants.TYPE_FLOAT;
             array[array_index].offset = offset;
             array[array_index].len = len;
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref, TYPE_FLOAT, len);
+            addStatSendArray(ref, Constants.TYPE_FLOAT, len);
         }
     }
 
@@ -436,7 +447,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             throws IOException {
         if (NO_ARRAY_BUFFERS) {
             out.writeArray(ref, offset, len);
-        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
+        } else if (len < SMALL_ARRAY_BOUND / Constants.SIZEOF_DOUBLE) {
             for (int i = offset; i < offset + len; i++) {
                 writeDouble(ref[i]);
             }
@@ -447,15 +458,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayDouble: " + ref + " offset: " + offset
-                        + " len: " + len + " type: " + TYPE_DOUBLE);
+                        + " len: " + len + " type: " + Constants.TYPE_DOUBLE);
             }
-            array[array_index].type = TYPE_DOUBLE;
+            array[array_index].type = Constants.TYPE_DOUBLE;
             array[array_index].offset = offset;
             array[array_index].len = len;
             array[array_index].array = ref;
             array_index++;
 
-            addStatSendArray(ref, TYPE_DOUBLE, len);
+            addStatSendArray(ref, Constants.TYPE_DOUBLE, len);
         }
     }
 
@@ -486,28 +497,28 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             for (int i = 0; i < array_index; i++) {
                 ArrayDescriptor a = array[i];
                 switch (a.type) {
-                case TYPE_BOOLEAN:
+                case Constants.TYPE_BOOLEAN:
                     out.writeArray((boolean[]) a.array, a.offset, a.len);
                     break;
-                case TYPE_BYTE:
+                case Constants.TYPE_BYTE:
                     out.writeArray((byte[]) a.array, a.offset, a.len);
                     break;
-                case TYPE_CHAR:
+                case Constants.TYPE_CHAR:
                     out.writeArray((char[]) a.array, a.offset, a.len);
                     break;
-                case TYPE_SHORT:
+                case Constants.TYPE_SHORT:
                     out.writeArray((short[]) a.array, a.offset, a.len);
                     break;
-                case TYPE_INT:
+                case Constants.TYPE_INT:
                     out.writeArray((int[]) a.array, a.offset, a.len);
                     break;
-                case TYPE_LONG:
+                case Constants.TYPE_LONG:
                     out.writeArray((long[]) a.array, a.offset, a.len);
                     break;
-                case TYPE_FLOAT:
+                case Constants.TYPE_FLOAT:
                     out.writeArray((float[]) a.array, a.offset, a.len);
                     break;
-                case TYPE_DOUBLE:
+                case Constants.TYPE_DOUBLE:
                     out.writeArray((double[]) a.array, a.offset, a.len);
                     break;
                 }
@@ -524,32 +535,32 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
 
         if (! NO_ARRAY_BUFFERS && !out.finished()) {
-            indices_short = new short[PRIMITIVE_TYPES];
-            if (touched[TYPE_BYTE]) {
+            indices_short = new short[Constants.PRIMITIVE_TYPES];
+            if (touched[Constants.TYPE_BYTE]) {
                 byte_buffer = new byte[BYTE_BUFFER_SIZE];
             }
-            if (touched[TYPE_CHAR]) {
+            if (touched[Constants.TYPE_CHAR]) {
                 char_buffer = new char[CHAR_BUFFER_SIZE];
             }
-            if (touched[TYPE_SHORT]) {
+            if (touched[Constants.TYPE_SHORT]) {
                 short_buffer = new short[SHORT_BUFFER_SIZE];
             }
-            if (touched[TYPE_INT]) {
+            if (touched[Constants.TYPE_INT]) {
                 int_buffer = new int[INT_BUFFER_SIZE];
             }
-            if (touched[TYPE_LONG]) {
+            if (touched[Constants.TYPE_LONG]) {
                 long_buffer = new long[LONG_BUFFER_SIZE];
             }
-            if (touched[TYPE_FLOAT]) {
+            if (touched[Constants.TYPE_FLOAT]) {
                 float_buffer = new float[FLOAT_BUFFER_SIZE];
             }
-            if (touched[TYPE_DOUBLE]) {
+            if (touched[Constants.TYPE_DOUBLE]) {
                 double_buffer = new double[DOUBLE_BUFFER_SIZE];
             }
             // unfinished++;
         }
 
-        for (int i = 0; i < PRIMITIVE_TYPES; i++) {
+        for (int i = 0; i < Constants.PRIMITIVE_TYPES; i++) {
             touched[i] = false;
         }
     }
@@ -764,7 +775,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[i] = new ArrayDescriptor();
         }
 
-        indices_short = new short[PRIMITIVE_TYPES];
+        indices_short = new short[Constants.PRIMITIVE_TYPES];
         byte_buffer = new byte[BYTE_BUFFER_SIZE];
         char_buffer = new char[CHAR_BUFFER_SIZE];
         short_buffer = new short[SHORT_BUFFER_SIZE];
@@ -858,13 +869,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
      */
     private void flushBuffers() throws IOException {
         indices_short[TYPE_ARRAY] = (short) array_index;
-        indices_short[TYPE_BYTE] = (short) byte_index;
-        indices_short[TYPE_CHAR] = (short) char_index;
-        indices_short[TYPE_SHORT] = (short) short_index;
-        indices_short[TYPE_INT] = (short) int_index;
-        indices_short[TYPE_LONG] = (short) long_index;
-        indices_short[TYPE_FLOAT] = (short) float_index;
-        indices_short[TYPE_DOUBLE] = (short) double_index;
+        indices_short[Constants.TYPE_BYTE] = (short) byte_index;
+        indices_short[Constants.TYPE_CHAR] = (short) char_index;
+        indices_short[Constants.TYPE_SHORT] = (short) short_index;
+        indices_short[Constants.TYPE_INT] = (short) int_index;
+        indices_short[Constants.TYPE_LONG] = (short) long_index;
+        indices_short[Constants.TYPE_FLOAT] = (short) float_index;
+        indices_short[Constants.TYPE_DOUBLE] = (short) double_index;
 
         if (DEBUG && logger.isDebugEnabled()) {
             logger.debug("writing arrays " + array_index);
@@ -877,36 +888,36 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             logger.debug("writing doubles " + double_index);
         }
 
-        out.writeArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES
-                - BEGIN_TYPES);
+        out.writeArray(indices_short, Constants.BEGIN_TYPES,
+                Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES);
 
         if (byte_index > 0) {
             out.writeArray(byte_buffer, 0, byte_index);
-            touched[TYPE_BYTE] = true;
+            touched[Constants.TYPE_BYTE] = true;
         }
         if (char_index > 0) {
             out.writeArray(char_buffer, 0, char_index);
-            touched[TYPE_CHAR] = true;
+            touched[Constants.TYPE_CHAR] = true;
         }
         if (short_index > 0) {
             out.writeArray(short_buffer, 0, short_index);
-            touched[TYPE_SHORT] = true;
+            touched[Constants.TYPE_SHORT] = true;
         }
         if (int_index > 0) {
             out.writeArray(int_buffer, 0, int_index);
-            touched[TYPE_INT] = true;
+            touched[Constants.TYPE_INT] = true;
         }
         if (long_index > 0) {
             out.writeArray(long_buffer, 0, long_index);
-            touched[TYPE_LONG] = true;
+            touched[Constants.TYPE_LONG] = true;
         }
         if (float_index > 0) {
             out.writeArray(float_buffer, 0, float_index);
-            touched[TYPE_FLOAT] = true;
+            touched[Constants.TYPE_FLOAT] = true;
         }
         if (double_index > 0) {
             out.writeArray(double_buffer, 0, double_index);
-            touched[TYPE_DOUBLE] = true;
+            touched[Constants.TYPE_DOUBLE] = true;
         }
 
         reset_indices();

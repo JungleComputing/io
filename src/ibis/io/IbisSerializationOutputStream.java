@@ -9,18 +9,24 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.util.Hashtable;
 
+import org.apache.log4j.Logger;
+
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
  * for Ibis serialization.
  */
 public class IbisSerializationOutputStream
         extends DataSerializationOutputStream {
+    private static final Logger logger = Logger.getLogger(IbisSerializationOutputStream.class);
+    
+    private static final boolean DEBUG = IOProperties.DEBUG;
+    
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_IBIS_SERIALIZATION = false;
 
     /** Record how many objects of any class are sent. */
     private static final boolean STATS_OBJECTS
-            = properties.getBooleanProperty(s_stats_written);
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_stats_written);
 
     // if STATS_OBJECTS
     static Hashtable<Class<?>, Integer> statSendObjects;
@@ -42,7 +48,7 @@ public class IbisSerializationOutputStream
                             System.out.println(statSendObjects);
                             System.out.println("Non-array handles sent "
                                     + statObjectHandle);
-                            for (int i = BEGIN_TYPES; i < PRIMITIVE_TYPES;
+                            for (int i = Constants.BEGIN_TYPES; i < Constants.PRIMITIVE_TYPES;
                                     i++) {
                                 if (statArrayCount[i]
                                         + statArrayHandle[i] > 0) {
@@ -62,9 +68,9 @@ public class IbisSerializationOutputStream
             System.out.println("IbisSerializationOutputStream.STATS_OBJECTS "
                     + "enabled");
             statSendObjects = new Hashtable<Class<?>, Integer>();
-            statArrayCount = new int[PRIMITIVE_TYPES];
-            statArrayHandle = new int[PRIMITIVE_TYPES];
-            statArrayLength = new long[PRIMITIVE_TYPES];
+            statArrayCount = new int[Constants.PRIMITIVE_TYPES];
+            statArrayHandle = new int[Constants.PRIMITIVE_TYPES];
+            statArrayLength = new long[Constants.PRIMITIVE_TYPES];
         } else {
             statSendObjects = null;
             statArrayCount = null;
@@ -150,8 +156,8 @@ public class IbisSerializationOutputStream
 
         types_clear();
 
-        next_type = PRIMITIVE_TYPES;
-        next_handle = CONTROL_HANDLES;
+        next_type = Constants.PRIMITIVE_TYPES;
+        next_handle = Constants.CONTROL_HANDLES;
     }
 
     /**
@@ -161,27 +167,27 @@ public class IbisSerializationOutputStream
         super();
         types_clear();
 
-        next_type = PRIMITIVE_TYPES;
-        next_handle = CONTROL_HANDLES;
+        next_type = Constants.PRIMITIVE_TYPES;
+        next_handle = Constants.CONTROL_HANDLES;
     }
 
     static String primitiveName(int i) {
         switch (i) {
-        case TYPE_BOOLEAN:
+        case Constants.TYPE_BOOLEAN:
             return "boolean";
-        case TYPE_BYTE:
+        case Constants.TYPE_BYTE:
             return "byte";
-        case TYPE_CHAR:
+        case Constants.TYPE_CHAR:
             return "char";
-        case TYPE_SHORT:
+        case Constants.TYPE_SHORT:
             return "short";
-        case TYPE_INT:
+        case Constants.TYPE_INT:
             return "int";
-        case TYPE_LONG:
+        case Constants.TYPE_LONG:
             return "long";
-        case TYPE_FLOAT:
+        case Constants.TYPE_FLOAT:
             return "float";
-        case TYPE_DOUBLE:
+        case Constants.TYPE_DOUBLE:
             return "double";
         }
 
@@ -190,22 +196,22 @@ public class IbisSerializationOutputStream
 
     static int primitiveBytes(int i) {
         switch (i) {
-        case TYPE_BOOLEAN:
-            return SIZEOF_BOOLEAN;
-        case TYPE_BYTE:
-            return SIZEOF_BYTE;
-        case TYPE_CHAR:
-            return SIZEOF_CHAR;
-        case TYPE_SHORT:
-            return SIZEOF_SHORT;
-        case TYPE_INT:
-            return SIZEOF_INT;
-        case TYPE_LONG:
-            return SIZEOF_LONG;
-        case TYPE_FLOAT:
-            return SIZEOF_FLOAT;
-        case TYPE_DOUBLE:
-            return SIZEOF_DOUBLE;
+        case Constants.TYPE_BOOLEAN:
+            return Constants.SIZEOF_BOOLEAN;
+        case Constants.TYPE_BYTE:
+            return Constants.SIZEOF_BYTE;
+        case Constants.TYPE_CHAR:
+            return Constants.SIZEOF_CHAR;
+        case Constants.TYPE_SHORT:
+            return Constants.SIZEOF_SHORT;
+        case Constants.TYPE_INT:
+            return Constants.SIZEOF_INT;
+        case Constants.TYPE_LONG:
+            return Constants.SIZEOF_LONG;
+        case Constants.TYPE_FLOAT:
+            return Constants.SIZEOF_FLOAT;
+        case Constants.TYPE_DOUBLE:
+            return Constants.SIZEOF_DOUBLE;
         }
 
         return 0;
@@ -214,22 +220,22 @@ public class IbisSerializationOutputStream
     private static int arrayClassType(Class<?> arrayClass) {
         if (false) {
             // nothing
-        } else if (arrayClass == classByteArray) {
-            return TYPE_BYTE;
-        } else if (arrayClass == classIntArray) {
-            return TYPE_INT;
-        } else if (arrayClass == classBooleanArray) {
-            return TYPE_BOOLEAN;
-        } else if (arrayClass == classDoubleArray) {
-            return TYPE_DOUBLE;
-        } else if (arrayClass == classCharArray) {
-            return TYPE_CHAR;
-        } else if (arrayClass == classShortArray) {
-            return TYPE_SHORT;
-        } else if (arrayClass == classLongArray) {
-            return TYPE_LONG;
-        } else if (arrayClass == classFloatArray) {
-            return TYPE_FLOAT;
+        } else if (arrayClass == Constants.classByteArray) {
+            return Constants.TYPE_BYTE;
+        } else if (arrayClass == Constants.classIntArray) {
+            return Constants.TYPE_INT;
+        } else if (arrayClass == Constants.classBooleanArray) {
+            return Constants.TYPE_BOOLEAN;
+        } else if (arrayClass == Constants.classDoubleArray) {
+            return Constants.TYPE_DOUBLE;
+        } else if (arrayClass == Constants.classCharArray) {
+            return Constants.TYPE_CHAR;
+        } else if (arrayClass == Constants.classShortArray) {
+            return Constants.TYPE_SHORT;
+        } else if (arrayClass == Constants.classLongArray) {
+            return Constants.TYPE_LONG;
+        } else if (arrayClass == Constants.classFloatArray) {
+            return Constants.TYPE_FLOAT;
         }
         return -1;
     }
@@ -269,15 +275,15 @@ public class IbisSerializationOutputStream
     private void types_clear() {
         lastClass = null;
         types.clear();
-        types.put(classBooleanArray, TYPE_BOOLEAN | TYPE_BIT);
-        types.put(classByteArray, TYPE_BYTE | TYPE_BIT);
-        types.put(classCharArray, TYPE_CHAR | TYPE_BIT);
-        types.put(classShortArray, TYPE_SHORT | TYPE_BIT);
-        types.put(classIntArray, TYPE_INT | TYPE_BIT);
-        types.put(classLongArray, TYPE_LONG | TYPE_BIT);
-        types.put(classFloatArray, TYPE_FLOAT | TYPE_BIT);
-        types.put(classDoubleArray, TYPE_DOUBLE | TYPE_BIT);
-        next_type = PRIMITIVE_TYPES;
+        types.put(Constants.classBooleanArray, Constants.TYPE_BOOLEAN | Constants.TYPE_BIT);
+        types.put(Constants.classByteArray, Constants.TYPE_BYTE | Constants.TYPE_BIT);
+        types.put(Constants.classCharArray, Constants.TYPE_CHAR | Constants.TYPE_BIT);
+        types.put(Constants.classShortArray, Constants.TYPE_SHORT | Constants.TYPE_BIT);
+        types.put(Constants.classIntArray, Constants.TYPE_INT | Constants.TYPE_BIT);
+        types.put(Constants.classLongArray, Constants.TYPE_LONG | Constants.TYPE_BIT);
+        types.put(Constants.classFloatArray, Constants.TYPE_FLOAT | Constants.TYPE_BIT);
+        types.put(Constants.classDoubleArray, Constants.TYPE_DOUBLE | Constants.TYPE_BIT);
+        next_type = Constants.PRIMITIVE_TYPES;
     }
 
     public void reset() {
@@ -285,7 +291,7 @@ public class IbisSerializationOutputStream
     }
 
     public void reset(boolean cleartypes) {
-        if (cleartypes || next_handle > CONTROL_HANDLES) {
+        if (cleartypes || next_handle > Constants.CONTROL_HANDLES) {
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("reset: next handle = " + next_handle + ".");
             }
@@ -300,7 +306,7 @@ public class IbisSerializationOutputStream
             } else {
                 resetPending = true;
             }
-            next_handle = CONTROL_HANDLES;
+            next_handle = Constants.CONTROL_HANDLES;
         }
         if (cleartypes) {
             types_clear();
@@ -320,7 +326,7 @@ public class IbisSerializationOutputStream
             startTimer();
         }
         if (ref == null) {
-            writeHandle(NUL_HANDLE);
+            writeHandle(Constants.NUL_HANDLE);
             if (TIME_IBIS_SERIALIZATION) {
                 stopTimer();
             }
@@ -348,14 +354,14 @@ public class IbisSerializationOutputStream
      */
     void writeHandle(int v) throws IOException {
         if (clearPending) {
-            writeInt(CLEAR_HANDLE);
+            writeInt(Constants.CLEAR_HANDLE);
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("wrote a CLEAR");
             }
             resetPending = false;
             clearPending = false;
         } else if (resetPending) {
-            writeInt(RESET_HANDLE);
+            writeInt(Constants.RESET_HANDLE);
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("wrote a RESET");
             }
@@ -374,7 +380,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        if (writeArrayHeader(ref, classBooleanArray, len, false)) {
+        if (writeArrayHeader(ref, Constants.classBooleanArray, len, false)) {
             writeArrayBoolean(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -386,7 +392,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        if (writeArrayHeader(ref, classByteArray, len, false)) {
+        if (writeArrayHeader(ref, Constants.classByteArray, len, false)) {
             writeArrayByte(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -398,7 +404,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        if (writeArrayHeader(ref, classShortArray, len, false)) {
+        if (writeArrayHeader(ref, Constants.classShortArray, len, false)) {
             writeArrayShort(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -410,7 +416,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        if (writeArrayHeader(ref, classCharArray, len, false)) {
+        if (writeArrayHeader(ref, Constants.classCharArray, len, false)) {
             writeArrayChar(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -422,7 +428,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        if (writeArrayHeader(ref, classIntArray, len, false)) {
+        if (writeArrayHeader(ref, Constants.classIntArray, len, false)) {
             writeArrayInt(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -434,7 +440,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        if (writeArrayHeader(ref, classLongArray, len, false)) {
+        if (writeArrayHeader(ref, Constants.classLongArray, len, false)) {
             writeArrayLong(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -446,7 +452,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        if (writeArrayHeader(ref, classFloatArray, len, false)) {
+        if (writeArrayHeader(ref, Constants.classFloatArray, len, false)) {
             writeArrayFloat(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -458,7 +464,7 @@ public class IbisSerializationOutputStream
         if (TIME_IBIS_SERIALIZATION) {
             startTimer();
         }
-        if (writeArrayHeader(ref, classDoubleArray, len, false)) {
+        if (writeArrayHeader(ref, Constants.classDoubleArray, len, false)) {
             writeArrayDouble(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
@@ -528,7 +534,7 @@ public class IbisSerializationOutputStream
     private boolean writeArrayHeader(Object ref, Class<?> clazz, int len,
             boolean doCycleCheck) throws IOException {
         if (ref == null) {
-            writeHandle(NUL_HANDLE);
+            writeHandle(Constants.NUL_HANDLE);
             return false;
         }
 
@@ -647,7 +653,7 @@ public class IbisSerializationOutputStream
     private int newType(Class<?> clazz) {
         int type_number = next_type++;
 
-        type_number = (type_number | TYPE_BIT);
+        type_number = (type_number | Constants.TYPE_BIT);
         types.put(clazz, type_number);
 
         return type_number;
@@ -701,7 +707,7 @@ public class IbisSerializationOutputStream
     public int writeKnownObjectHeader(Object ref) throws IOException {
 
         if (ref == null) {
-            writeHandle(NUL_HANDLE);
+            writeHandle(Constants.NUL_HANDLE);
             return 0;
         }
 
@@ -737,7 +743,7 @@ public class IbisSerializationOutputStream
     public int writeKnownArrayHeader(Object ref, int typehandle)
             throws IOException {
         if (ref == null) {
-            writeHandle(NUL_HANDLE);
+            writeHandle(Constants.NUL_HANDLE);
             return 0;
         }
 
@@ -745,7 +751,7 @@ public class IbisSerializationOutputStream
         if (handle == next_handle) {
             // System.err.write("+");
             next_handle++;
-            writeInt(typehandle | TYPE_BIT);
+            writeInt(typehandle | Constants.TYPE_BIT);
             return 1;
         }
 
@@ -953,7 +959,7 @@ public class IbisSerializationOutputStream
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeString: --> null");
             }
-            writeHandle(NUL_HANDLE);
+            writeHandle(Constants.NUL_HANDLE);
             if (TIME_IBIS_SERIALIZATION) {
                 stopTimer();
             }
@@ -1063,7 +1069,7 @@ public class IbisSerializationOutputStream
             startTimer();
         }
         if (ref == null) {
-            writeHandle(NUL_HANDLE);
+            writeHandle(Constants.NUL_HANDLE);
             if (TIME_IBIS_SERIALIZATION) {
                 stopTimer();
             }
@@ -1215,7 +1221,7 @@ public class IbisSerializationOutputStream
 
         public void writeUnshared(Object ref) throws IOException {
             if (ref == null) {
-                ibisStream.writeHandle(NUL_HANDLE);
+                ibisStream.writeHandle(Constants.NUL_HANDLE);
                 return;
             }
             /* TODO: deal with writeReplace! This should be done before
@@ -1254,7 +1260,7 @@ public class IbisSerializationOutputStream
                 throws IOException {
             Class<?> cl = desc.forClass();
             if (cl == null) {
-                ibisStream.writeHandle(NUL_HANDLE);
+                ibisStream.writeHandle(Constants.NUL_HANDLE);
                 return;
             }
             ibisStream.writeClass(cl);

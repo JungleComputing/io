@@ -8,12 +8,12 @@ import ibis.util.Timer;
  * A hash table that aims for speed for pairs (Object, int). This one is
  * specially made for (object, handle) pairs.
  */
-public final class HandleHash extends IOProperties {
+public final class HandleHash {
 
-    private static final boolean STATS = properties.getBooleanProperty(
+    private static final boolean STATS = IOProperties.properties.getBooleanProperty(
             IOProperties.s_hash_stats);
 
-    private static final boolean TIMINGS = properties.getBooleanProperty(
+    private static final boolean TIMINGS = IOProperties.properties.getBooleanProperty(
             IOProperties.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
@@ -26,7 +26,7 @@ public final class HandleHash extends IOProperties {
      * before the hashmap is resized. Lower value means less chaining, but
      * larger hashtable.
      */
-    private static final int RESIZE_PERCENTAGE = properties.getIntProperty(
+    private static final int RESIZE_PERCENTAGE = IOProperties.properties.getIntProperty(
             IOProperties.s_hash_resize, 100);
 
     /** Maps handle to object. */

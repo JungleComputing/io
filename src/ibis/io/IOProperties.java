@@ -15,12 +15,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-
 /**
  * Collects all system properties used by the ibis.io package.
  */
-public class IOProperties implements Constants {
+public final class IOProperties {
     static final TypedProperties properties;
 
     static final String PREFIX = "ibis.io.";
@@ -30,9 +28,6 @@ public class IOProperties implements Constants {
 
     /** Property name of the property file. */
     public static final String PROPERTIES_FILE = PREFIX + "properties.file";
-    
-    static final Logger logger = Logger.getLogger("ibis.io");
-     
 
     static final String s_stats_nonrewritten = PREFIX
             + "stats.nonrewritten";
