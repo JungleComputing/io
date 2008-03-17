@@ -29,13 +29,11 @@ public final class IOProperties {
     /** Property name of the property file. */
     public static final String PROPERTIES_FILE = PREFIX + "properties.file";
 
-    static final String s_stats_nonrewritten = PREFIX
-            + "stats.nonrewritten";
+    static final String s_stats_nonrewritten = PREFIX + "stats.nonrewritten";
 
     static final String s_stats_written = PREFIX + "stats.written";
 
-    static final String s_classloader = PREFIX
-            + "serialization.classloader";
+    static final String s_classloader = PREFIX + "serialization.classloader";
 
     static final String s_timer = PREFIX + "serialization.timer";
 
@@ -51,8 +49,7 @@ public final class IOProperties {
 
     static final String s_asserts = PREFIX + "assert";
 
-    static final String s_small_array_bound = PREFIX
-            + "smallarraybound";
+    static final String s_small_array_bound = PREFIX + "smallarraybound";
 
     static final String s_hash_asserts = PREFIX + "hash.assert";
 
@@ -64,76 +61,83 @@ public final class IOProperties {
 
     static final String s_deepcopy_ser = PREFIX + "deepcopy.serialization";
 
-    private static final String[][] propertiesList = 
-        new String[][] {
-            { PROPERTIES_FILE, PROPERTIES_FILENAME,
-                "String: determines the file name of the Ibis IO properties "
-                    + "file"},
+    private static final String[][] propertiesList = new String[][] {
+            {
+                    PROPERTIES_FILE,
+                    PROPERTIES_FILENAME,
+                    "String: determines the file name of the Ibis IO properties "
+                            + "file" },
             { s_stats_nonrewritten, "false",
-                "Boolean: if true, print non-rewritten object statistics"},
+                    "Boolean: if true, print non-rewritten object statistics" },
             { s_stats_written, "false",
-                "Boolean: if true, print statistics about objects written"},
-            { s_classloader, null,
-                "String: the name of a classloader to be used when a class "
-                    + "cannot be found"},
+                    "Boolean: if true, print statistics about objects written" },
+            {
+                    s_classloader,
+                    null,
+                    "String: the name of a classloader to be used when a class "
+                            + "cannot be found" },
             { s_timer, "false",
-                "Boolean: if true, enables various serialization timers"},
-            { s_no_array_buffers, "false",
-                "Boolean: if true, leaves all buffering of Ibis serialization "
-                    + "to the layers below it" },
-            { s_conversion, "hybrid",
-                "String: determines the conversion used" },
-            { s_buffer_size, "4096",
-                "Integer: determines the size of the buffers used in Ibis "
-                    + "serialization"},
+                    "Boolean: if true, enables various serialization timers" },
+            {
+                    s_no_array_buffers,
+                    "false",
+                    "Boolean: if true, leaves all buffering of Ibis serialization "
+                            + "to the layers below it" },
+            { s_conversion, "hybrid", "String: determines the conversion used" },
+            {
+                    s_buffer_size,
+                    "4096",
+                    "Integer: determines the size of the buffers used in Ibis "
+                            + "serialization" },
             { s_array_buffer, "32",
-                "Integer: determines the size of the buffer for arrays"},
-            { s_debug, "false",
-                "Boolean: if true, enables log4j calls"},
-            { s_asserts, "false",
-                "Boolean: if true, enables some assertions"},
-            { s_small_array_bound, "256",
-                "Integer: determines the bound beyond which arrays of a "
-                    + "basic type are written as an array instead of as "
-                    + "individual elements"},
+                    "Integer: determines the size of the buffer for arrays" },
+            { s_debug, "false", "Boolean: if true, enables log4j calls" },
+            { s_asserts, "false", "Boolean: if true, enables some assertions" },
+            {
+                    s_small_array_bound,
+                    "256",
+                    "Integer: determines the bound beyond which arrays of a "
+                            + "basic type are written as an array instead of as "
+                            + "individual elements" },
             { s_hash_asserts, "false",
-                "Boolean: if true, enables some assertions in the ibis hash"},
+                    "Boolean: if true, enables some assertions in the ibis hash" },
             { s_hash_stats, "false",
-                "Boolean: if true, enables statistics in the ibis hash"},
+                    "Boolean: if true, enables statistics in the ibis hash" },
             { s_hash_timings, "false",
-                "Boolean: if true, enables various timers in the ibis hash"},
-            { s_hash_resize, "100",
-                "Integer: determines the fill-percentage before the ibis hash "
-                    + " is resized; choose between 50 and 200; larger values "
-                    + " mean more chaining but a smaller hash size"},
+                    "Boolean: if true, enables various timers in the ibis hash" },
+            {
+                    s_hash_resize,
+                    "100",
+                    "Integer: determines the fill-percentage before the ibis hash "
+                            + " is resized; choose between 50 and 200; larger values "
+                            + " mean more chaining but a smaller hash size" },
             { s_deepcopy_ser, "ibis",
-                "String: determines the serialization used for DeepCopy"}
-        };
+                    "String: determines the serialization used for DeepCopy" } };
 
     static {
         properties = new TypedProperties(getDefaultProperties());
-        properties.checkProperties(PREFIX,
-                getPropertyNames().toArray(new String[0]), null, true);
+        properties.checkProperties(PREFIX, getPropertyNames().toArray(
+                new String[0]), null, true);
     }
 
     static final boolean DEBUG = properties.getBooleanProperty(s_debug, false);
 
-    public static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, false);
+    public static final boolean ASSERTS = properties.getBooleanProperty(
+            s_asserts, false);
 
-    public static final int SMALL_ARRAY_BOUND
-            = properties.getIntProperty(s_small_array_bound, 256); // byte
+    public static final int SMALL_ARRAY_BOUND = properties.getIntProperty(
+            s_small_array_bound, 256); // byte
 
     public static final int BUFFER_SIZE = properties.getIntProperty(
             s_buffer_size, 4 * 1024);
 
-    public static final int ARRAY_BUFFER_SIZE
-            = properties.getIntProperty(s_array_buffer, 32);
+    public static final int ARRAY_BUFFER_SIZE = properties.getIntProperty(
+            s_array_buffer, 32);
 
     /**
      * Returns the hard-coded Ibis IO properties.
      * 
-     * @return
-     *          the resulting properties.
+     * @return the resulting properties.
      */
     public static Properties getHardcodedProperties() {
         Properties properties = new Properties();
@@ -150,8 +154,7 @@ public final class IOProperties {
     /**
      * Returns a map mapping hard-coded property names to their descriptions.
      * 
-     * @return
-     *          the name/description map.
+     * @return the name/description map.
      */
     public static Map<String, String> getDescriptions() {
         Map<String, String> result = new LinkedHashMap<String, String>();
@@ -217,13 +220,12 @@ public final class IOProperties {
     private static Properties getDefaultProperties() {
 
         Properties props = new Properties();
-        
-        // Get the properties from the commandline. 
+
+        // Get the properties from the commandline.
         Properties system = System.getProperties();
 
         // Check what property file we should load.
-        String file = system.getProperty(PROPERTIES_FILE,
-                PROPERTIES_FILENAME);
+        String file = system.getProperty(PROPERTIES_FILE, PROPERTIES_FILENAME);
 
         // If the file is not explicitly set to null, we try to load it.
         // First try the filename as is, if this fails try with the
@@ -233,30 +235,19 @@ public final class IOProperties {
             if (fromFile != null) {
                 addProperties(props, fromFile);
             } else {
-                String homeFn = System.getProperty("user.home")
-                    + System.getProperty("file.separator") + file;
-                fromFile = getPropertyFile(homeFn);
-                
-                if (fromFile == null) { 
-                    if (! file.equals(PROPERTIES_FILENAME)) { 
-                        // If we fail to load the user specified file,
-                        // we give an error, since only the default file
-                        // may fail silently.                     
-                        System.err.println("User specified preferences \""
-                                + file + "\" not found!");
-                    }                                            
-                } else {                  
-                    // If we managed to load the file, we add the
-                    // properties to the props, possibly
-                    // overwriting defaults.
-                    addProperties(props, fromFile);
+                if (!file.equals(PROPERTIES_FILENAME)) {
+                    // If we fail to load the user specified file,
+                    // we give an error, since only the default file
+                    // may fail silently.
+                    System.err.println("User specified preferences \"" + file
+                            + "\" not found!");
                 }
             }
         }
 
         // Finally, add the system properties (also from the command line)
-        // to the result, possibly overriding entries from file or the 
-        // defaults.            
+        // to the result, possibly overriding entries from file or the
+        // defaults.
         addProperties(props, system);
 
         return props;
