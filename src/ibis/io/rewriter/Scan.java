@@ -68,6 +68,7 @@ public class Scan {
             //	    System.out.println("Command = " + command);
 
             p = new RunProcess(command);
+            p.run();
             result = p.getExitStatus();
         } catch (Exception e) {
             result = -1;
