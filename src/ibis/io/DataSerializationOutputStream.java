@@ -195,7 +195,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
         } else {
             if (array_index == IOProperties.ARRAY_BUFFER_SIZE) {
-                flush();
+                internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayBoolean: " + ref + " offset: " + offset
@@ -232,7 +232,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
         } else {
             if (array_index == ARRAY_BUFFER_SIZE) {
-                flush();
+                internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayByte: " + ref + " offset: " + offset
@@ -269,7 +269,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
         } else {
             if (array_index == ARRAY_BUFFER_SIZE) {
-                flush();
+                internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayChar: " + new String(ref) + " offset: "
@@ -306,7 +306,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
         } else {
             if (array_index == ARRAY_BUFFER_SIZE) {
-                flush();
+                internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayShort: " + ref + " offset: " + offset
@@ -343,7 +343,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
         } else {
             if (array_index == ARRAY_BUFFER_SIZE) {
-                flush();
+                internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayInt: " + ref + " offset: " + offset
@@ -380,7 +380,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
         } else {
             if (array_index == IOProperties.ARRAY_BUFFER_SIZE) {
-                flush();
+                internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayLong: " + ref + " offset: " + offset
@@ -417,7 +417,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
         } else {
             if (array_index == ARRAY_BUFFER_SIZE) {
-                flush();
+                internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayFloat: " + ref + " offset: " + offset
@@ -454,7 +454,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
         } else {
             if (array_index == ARRAY_BUFFER_SIZE) {
-                flush();
+                internalFlush();
             }
             if (DEBUG && logger.isDebugEnabled()) {
                 logger.debug("writeArrayDouble: " + ref + " offset: " + offset
@@ -479,6 +479,11 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
      * @exception IOException on an IO error.
      */
     public void flush() throws IOException {
+        internalFlush();
+        out.finish();
+    }
+
+    private void internalFlush() throws IOException {
 
         if (DEBUG && logger.isDebugEnabled()) {
             logger.debug("doing a flush()");
@@ -578,7 +583,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             out.writeBoolean(value);
         } else {
             if (byte_index == byte_buffer.length) {
-                flush();
+                internalFlush();
             }
             byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
         }
@@ -603,7 +608,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             out.writeByte(value);
         } else {
             if (byte_index == byte_buffer.length) {
-                flush();
+                internalFlush();
             }
             byte_buffer[byte_index++] = value;
         }
@@ -628,7 +633,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             out.writeChar(value);
         } else {
             if (char_index == char_buffer.length) {
-                flush();
+                internalFlush();
             }
             char_buffer[char_index++] = value;
         }
@@ -653,7 +658,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             out.writeShort(value);
         } else {
             if (short_index == short_buffer.length) {
-                flush();
+                internalFlush();
             }
             short_buffer[short_index++] = value;
         }
@@ -678,7 +683,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             out.writeInt(value);
         } else {
             if (int_index == int_buffer.length) {
-                flush();
+                internalFlush();
             }
             int_buffer[int_index++] = value;
         }
@@ -704,7 +709,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             out.writeLong(value);
         } else {
             if (long_index == long_buffer.length) {
-                flush();
+                internalFlush();
             }
             long_buffer[long_index++] = value;
         }
@@ -729,7 +734,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             out.writeFloat(value);
         } else {
             if (float_index == float_buffer.length) {
-                flush();
+                internalFlush();
             }
             float_buffer[float_index++] = value;
         }
@@ -754,7 +759,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             out.writeDouble(value);
         } else {
             if (double_index == double_buffer.length) {
-                flush();
+                internalFlush();
             }
             double_buffer[double_index++] = value;
         }

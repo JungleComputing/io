@@ -173,6 +173,9 @@ public class ByteSerializationOutputStream extends SerializationBase
 
     public void flush() throws IOException {
         out.flush();
+        // No need to call out.finish() here, since
+        // ByteSerializationOutputStream does not support writes that
+        // require this.
     }
 
     public void close() throws IOException {
