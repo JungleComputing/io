@@ -12,16 +12,16 @@ import ibis.util.Timer;
  *   responsible for locking the hash.
  * + Hash table size is always a power of two for fast modulo calculations.
  */
-final class IbisHash extends IOProperties {
+final class IbisHash {
 
     private static final boolean ASSERTS
-            = properties.getBooleanProperty(s_hash_asserts);
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_asserts);
 
     private static final boolean STATS
-            = properties.getBooleanProperty(s_hash_stats);
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_stats);
 
     private static final boolean TIMINGS
-            = properties.getBooleanProperty(s_hash_timings);
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
 

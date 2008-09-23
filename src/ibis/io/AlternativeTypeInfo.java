@@ -16,6 +16,8 @@ import java.security.PrivilegedAction;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 /**
  * The <code>AlternativeTypeInfo</code> class maintains information about
  * a specific <code>Class</code>, such as a list of serializable fields, 
@@ -27,7 +29,9 @@ import java.util.HashMap;
  * boolean, reference. This determines the order in which fields are
  * serialized.
  */
-final class AlternativeTypeInfo extends IOProperties implements Constants {
+final class AlternativeTypeInfo {
+    
+    private static Logger logger = Logger.getLogger(AlternativeTypeInfo.class);
 
     /**
      * Maintains all <code>AlternativeTypeInfo</code> structures in a
@@ -82,7 +86,7 @@ final class AlternativeTypeInfo extends IOProperties implements Constants {
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
-            out.writeUTF((String) ref);
+            out.writeUTF(((Class) ref).getName());
         }
     }
 

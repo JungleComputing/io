@@ -5,14 +5,19 @@ package ibis.io;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.log4j.Logger;
+
 /**
  * This is a complete implementation of <code>DataOutputStream</code>.
  * It is built on top of an <code>OutputStream</code>.
  * There is no need to put any buffering inbetween. This implementation
  * does all the buffering needed.
  */
-public final class BufferedArrayOutputStream extends DataOutputStream
-        implements Constants {
+public final class BufferedArrayOutputStream extends DataOutputStream {
+    
+    private static final Logger logger = Logger.getLogger(BufferedArrayOutputStream.class);
+
+    private static final boolean DEBUG = IOProperties.DEBUG;
 
     /** Size of the buffer in which output data is collected. */
     private final int BUF_SIZE;
@@ -60,8 +65,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
      */
     private void flush(int incr) throws IOException {
 
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("flush(" + incr + ") : " + " "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("flush(" + incr + ") : " + " "
                     + (index + incr >= BUF_SIZE) + " " + (index) + ")");
         }
 
@@ -89,39 +94,39 @@ public final class BufferedArrayOutputStream extends DataOutputStream
     }
 
     public void writeChar(char value) throws IOException {
-        flush(SIZEOF_CHAR);
+        flush(Constants.SIZEOF_CHAR);
         conversion.char2byte(value, buffer, index);
-        index += SIZEOF_CHAR;
+        index += Constants.SIZEOF_CHAR;
     }
 
     public void writeShort(short value) throws IOException {
-        flush(SIZEOF_SHORT);
+        flush(Constants.SIZEOF_SHORT);
         conversion.short2byte(value, buffer, index);
-        index += SIZEOF_SHORT;
+        index += Constants.SIZEOF_SHORT;
     }
 
     public void writeInt(int value) throws IOException {
-        flush(SIZEOF_INT);
+        flush(Constants.SIZEOF_INT);
         conversion.int2byte(value, buffer, index);
-        index += SIZEOF_INT;
+        index += Constants.SIZEOF_INT;
     }
 
     public void writeLong(long value) throws IOException {
-        flush(SIZEOF_LONG);
+        flush(Constants.SIZEOF_LONG);
         conversion.long2byte(value, buffer, index);
-        index += SIZEOF_LONG;
+        index += Constants.SIZEOF_LONG;
     }
 
     public void writeFloat(float value) throws IOException {
-        flush(SIZEOF_FLOAT);
+        flush(Constants.SIZEOF_FLOAT);
         conversion.float2byte(value, buffer, index);
-        index += SIZEOF_FLOAT;
+        index += Constants.SIZEOF_FLOAT;
     }
 
     public void writeDouble(double value) throws IOException {
-        flush(SIZEOF_DOUBLE);
+        flush(Constants.SIZEOF_DOUBLE);
         conversion.double2byte(value, buffer, index);
-        index += SIZEOF_DOUBLE;
+        index += Constants.SIZEOF_DOUBLE;
     }
 
     public void write(byte[] b) throws IOException {
@@ -134,8 +139,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(boolean[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("writeArray(boolean[" + off + " ... "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArray(boolean[" + off + " ... "
                     + (off + len) + "])");
         }
 
@@ -155,8 +160,8 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(byte[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("writeArray(byte[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArray(byte[" + off + " ... " + (off + len)
                     + "])");
         }
 
@@ -182,125 +187,125 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(char[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("writeArray(char[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArray(char[" + off + " ... " + (off + len)
                     + "])");
         }
 
         do {
-            flush(SIZEOF_CHAR);
+            flush(Constants.SIZEOF_CHAR);
 
-            int size = Math.min((BUF_SIZE - index) / SIZEOF_CHAR, len);
+            int size = Math.min((BUF_SIZE - index) / Constants.SIZEOF_CHAR, len);
 
             conversion.char2byte(ref, off, size, buffer, index);
 
             off += size;
             len -= size;
-            index += size * SIZEOF_CHAR;
+            index += size * Constants.SIZEOF_CHAR;
 
         } while (len != 0);
     }
 
     public void writeArray(short[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("writeArray(short[" + off + " ... "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArray(short[" + off + " ... "
                     + (off + len) + "])");
         }
 
         do {
-            flush(SIZEOF_SHORT);
+            flush(Constants.SIZEOF_SHORT);
 
-            int size = Math.min((BUF_SIZE - index) / SIZEOF_SHORT, len);
+            int size = Math.min((BUF_SIZE - index) / Constants.SIZEOF_SHORT, len);
 
             conversion.short2byte(ref, off, size, buffer, index);
 
             off += size;
             len -= size;
-            index += size * SIZEOF_SHORT;
+            index += size * Constants.SIZEOF_SHORT;
 
         } while (len != 0);
     }
 
     public void writeArray(int[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("writeArray(int[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArray(int[" + off + " ... " + (off + len)
                     + "])");
         }
 
         do {
-            flush(SIZEOF_INT);
+            flush(Constants.SIZEOF_INT);
 
-            int size = Math.min((BUF_SIZE - index) / SIZEOF_INT, len);
+            int size = Math.min((BUF_SIZE - index) / Constants.SIZEOF_INT, len);
 
             conversion.int2byte(ref, off, size, buffer, index);
 
             off += size;
             len -= size;
-            index += size * SIZEOF_INT;
+            index += size * Constants.SIZEOF_INT;
 
         } while (len != 0);
     }
 
     public void writeArray(long[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("writeArray(long[" + off + " ... " + (off + len)
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArray(long[" + off + " ... " + (off + len)
                     + "])");
         }
 
         do {
-            flush(SIZEOF_LONG);
+            flush(Constants.SIZEOF_LONG);
 
-            int size = Math.min((BUF_SIZE - index) / SIZEOF_LONG, len);
+            int size = Math.min((BUF_SIZE - index) / Constants.SIZEOF_LONG, len);
 
             conversion.long2byte(ref, off, size, buffer, index);
 
             off += size;
             len -= size;
-            index += size * SIZEOF_LONG;
+            index += size * Constants.SIZEOF_LONG;
 
         } while (len != 0);
     }
 
     public void writeArray(float[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("writeArray(float[" + off + " ... "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArray(float[" + off + " ... "
                     + (off + len) + "])");
         }
         do {
-            flush(SIZEOF_FLOAT);
+            flush(Constants.SIZEOF_FLOAT);
 
-            int size = Math.min((BUF_SIZE - index) / SIZEOF_FLOAT, len);
+            int size = Math.min((BUF_SIZE - index) / Constants.SIZEOF_FLOAT, len);
 
             conversion.float2byte(ref, off, size, buffer, index);
 
             off += size;
             len -= size;
-            index += size * SIZEOF_FLOAT;
+            index += size * Constants.SIZEOF_FLOAT;
 
         } while (len != 0);
     }
 
     public void writeArray(double[] ref, int off, int len)
             throws IOException {
-        if (IOProperties.DEBUG && IOProperties.logger.isDebugEnabled()) {
-            IOProperties.logger.debug("writeArray(double[" + off + " ... "
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeArray(double[" + off + " ... "
                     + (off + len) + "])");
         }
 
         do {
-            flush(SIZEOF_DOUBLE);
+            flush(Constants.SIZEOF_DOUBLE);
 
-            int size = Math.min((BUF_SIZE - index) / SIZEOF_DOUBLE, len);
+            int size = Math.min((BUF_SIZE - index) / Constants.SIZEOF_DOUBLE, len);
 
             conversion.double2byte(ref, off, size, buffer, index);
 
             off += size;
             len -= size;
-            index += size * SIZEOF_DOUBLE;
+            index += size * Constants.SIZEOF_DOUBLE;
 
         } while (len != 0);
     }

@@ -130,6 +130,25 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         }
     }
 
+    public void finish() throws IOException {
+        SplitterException e = null;
+
+        for (int i = 0; i < out.size(); i++) {
+            try {
+                out.get(i).finish();
+            } catch (IOException e2) {
+                e = handleException(e, e2, i);
+                if (removeOnException) {
+                    i--;
+                }
+            }
+        }
+
+        if (e != null) {
+            throw e;
+        }
+    }
+
     public void close() throws IOException {
         SplitterException e = null;
 
@@ -147,6 +166,29 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         if (e != null) {
             throw e;
         }
+    }
+
+    public boolean finished() throws IOException {
+        SplitterException e = null;
+
+        for (int i = 0; i < out.size(); i++) {
+            try {
+                if (! out.get(i).finished()) {
+                    return false;
+                }
+            } catch (IOException e2) {
+                e = handleException(e, e2, i);
+                if (removeOnException) {
+                    i--;
+                }
+            }
+        }
+
+        if (e != null) {
+            throw e;
+        }
+
+        return true;
     }
 
     public long bytesWritten() {
