@@ -795,26 +795,15 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (DEBUG && logger.isDebugEnabled()) {
             logger.debug("write UTF " + str);
         }
+
         int len = str.length();
 
         // writeInt(len);
         // writeArray(str.toCharArray(), 0, len);
 
         int bn = 0;
-
-        for (int i = 0; i < len; i++) {
-            char c = str.charAt(i);
-            if (c > 0x0000 && c <= 0x007f) {
-                bn++;
-            } else if (c <= 0x07ff) {
-                bn += 2;
-            } else {
-                bn += 3;
-            }
-        }
-
-        byte[] b = new byte[bn];
-        bn = 0;
+        // Make sure we have at least enough room for the first char.
+        byte[] b = new byte[len + 2];
 
         for (int i = 0; i < len; i++) {
             char c = str.charAt(i);
@@ -827,6 +816,12 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
                 b[bn++] = (byte) (0xe0 | (0x0f & (c >> 12)));
                 b[bn++] = (byte) (0x80 | (0x3f & (c >> 6)));
                 b[bn++] = (byte) (0x80 | (0x3f & c));
+            }
+            // Is the buffer too small?
+            if (bn >= b.length - 3 && i < len - 1) {
+            	byte [] temp = new byte[b.length + len];
+            	System.arraycopy(b, 0, temp, 0, b.length);
+            	b = temp;
             }
         }
 

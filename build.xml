@@ -43,6 +43,7 @@
 		<!-- What versions of JME we target. This is the minimum we can support. -->
     	<property name="wtk.cldc.version" value="1.1"/>
     	<property name="wtk.midp.version" value="2.0"/>
+		<property name="wtk.optionalpda.enabled" value="true" />
 		
 		<property name="jmejavadoc" location="jmejavadoc" />
 
@@ -247,7 +248,7 @@
     		 This is required since wtkbuild doesn't respect includes properly -->
     	<copy todir="${tmpsrc}">
     		<fileset dir="${src}"
-    			includes="ibis/io/SerializationInput.*,ibis/io/SerializationOutput.*,ibis/io/DataInput.*,ibis/io/DataOutput.*,ibis/io/Replacer.*,ibis/io/jme/**,ibis/io/test/jme/**" 
+    			includes="a/**,ibis/io/SerializationInput.*,ibis/io/SerializationOutput.*,ibis/io/DataInput.*,ibis/io/DataOutput.*,ibis/io/Replacer.*,ibis/io/jme/**,ibis/io/test/jme/**" 
     		/>
     	</copy>
     	
@@ -277,12 +278,12 @@
         <!-- Put everything in ${tmp} into the jar file -->
         <jar jarfile="${jmetestjar}" basedir="${tmp}">
 	    	<manifest>
-	    		<attribute name="MIDlet-Name" value="Ibis IO JME" />
+	    		<attribute name="MIDlet-Name" value="Ibis IO Benchmarks" />
 	    		<attribute name="MIDlet-Version" value="1.0"/>
 	    		<attribute name="MIDlet-Vendor" value="cs.vu.nl"/>
 	    		<attribute name="MicroEdition-Configuration" value="CLDC-1.1" />
 	    		<attribute name="MicroEdition-Profile" value="MIDP-2.0" />
-				<attribute name="MIDlet-1" value="Benchmark, App.png, ibis.io.test.jme.bench.BenchmarkMIDlet" />
+				<attribute name="MIDlet-1" value="New Becnhmarks, App.png, ibis.io.test.jme.bench.BenchmarkMIDlet" />
 	    	</manifest>
 		</jar>
 
