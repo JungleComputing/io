@@ -68,7 +68,7 @@
 		<fail unless="wtk.exists" message="Please set WTK_HOME in your environment to the location of your Wireless Toolkit installation." />
     
 		<!-- Should we preverify the rsulting jar? -->
-		<property name="wtk.preverify" value="true" />
+		<property name="wtk.preverify" value="false" />
 		
 	</target>
   
@@ -91,7 +91,7 @@
 		<!-- Collect all the source into one place. -->
 		<copy todir="${tmpsrc}">
 			<fileset dir="${src}"
-					 excludes="ibis/io/jme/**,ibis/io/test/**"
+					 excludes="ibis/io/jme/**"
 					 />
 		</copy>
 		
